@@ -8,7 +8,10 @@ import {
   setPrimaryReference,
   clearReferences,
   countReferences,
+  getAllStoredReferences,
+  bulkImportReferences,
 } from "@/lib/storage/referenceStorage";
+
 import { rankReferences, filterUsableReferences } from "./referenceRanking";
 import { evaluatePracticeFrames } from "@/lib/practice/practiceEngine";
 import { createSyntheticGesture } from "@/lib/gesture/scoringCalibration";
@@ -215,6 +218,115 @@ test("STEP 7D — Multi-Reference Dataset & Storage Tests", async (t) => {
     });
   });
 
+  await t.test("J. getAllStoredReferences -> Retrieves all references across lessons with seed fallback", async () => {
+    const all = await getAllStoredReferences({ includeSeeds: true });
+    assert.ok(all.length >= 1, "Should include default seed references");
+
+    const ids = all.map((r) => r.id);
+    const uniqueIds = new Set(ids);
+    assert.strictEqual(ids.length, uniqueIds.size, "Must not contain duplicate reference IDs");
+  });
+
+
+  await t.test("K. bulkImportReferences -> Successfully imports multiple references across lessons", async () => {
+    const rawRefA = createSyntheticGesture(20, 800, "both");
+    const rawRefB = createSyntheticGesture(20, 800, "both");
+
+    const importBatch: ReferenceGesture[] = [
+      {
+        ...rawRefA,
+        id: "bulk_ref_lesson_1",
+        lessonId: "lesson_bulk_A",
+        word: "คำศัพท์ทดสอบ 1",
+        isPrimary: true,
+      },
+      {
+        ...rawRefB,
+        id: "bulk_ref_lesson_2",
+        lessonId: "lesson_bulk_B",
+        word: "คำศัพท์ทดสอบ 2",
+        isPrimary: true,
+      },
+    ];
+
+    // Deep copy of batch to test non-mutation
+    const originalJson = JSON.stringify(importBatch);
+
+    await bulkImportReferences(importBatch);
+
+    // Verify non-mutation
+    assert.strictEqual(JSON.stringify(importBatch), originalJson, "bulkImportReferences must not mutate input");
+
+    // Verify persistence
+    const storedA = await getReferencesByLessonId("lesson_bulk_A");
+    assert.strictEqual(storedA.length, 1);
+    assert.strictEqual(storedA[0].id, "bulk_ref_lesson_1");
+
+    const storedB = await getReferencesByLessonId("lesson_bulk_B");
+    assert.strictEqual(storedB.length, 1);
+    assert.strictEqual(storedB[0].id, "bulk_ref_lesson_2");
+
+    // Cleanup
+    await clearReferences("lesson_bulk_A");
+    await clearReferences("lesson_bulk_B");
+  });
+
+  await t.test("L. bulkImportReferences -> Duplicate ID validation (throws error)", async () => {
+    const rawRef = createSyntheticGesture(10, 500, "both");
+    const duplicateBatch: ReferenceGesture[] = [
+      {
+        ...rawRef,
+        id: "dup_ref_id",
+        lessonId: "lesson_dup_1",
+        word: "คำ 1",
+      },
+      {
+        ...rawRef,
+        id: "dup_ref_id", // duplicate ID
+        lessonId: "lesson_dup_2",
+        word: "คำ 2",
+      },
+    ];
+
+    await assert.rejects(
+      async () => {
+        await bulkImportReferences(duplicateBatch);
+      },
+      /พบ Reference ID ซ้ำกัน/
+    );
+  });
+
+  await t.test("M. bulkImportReferences -> Existing duplicate ID in storage throws error", async () => {
+    const rawRef = createSyntheticGesture(10, 500, "both");
+    const singleRef: ReferenceGesture = {
+      ...rawRef,
+      id: "already_exists_ref_id",
+      lessonId: "lesson_exist_1",
+      word: "คำเดิม",
+    };
+
+    await addReference(singleRef);
+
+    const collisionBatch: ReferenceGesture[] = [
+      {
+        ...rawRef,
+        id: "already_exists_ref_id",
+        lessonId: "lesson_exist_2",
+        word: "คำใหม่ชน ID",
+      },
+    ];
+
+    await assert.rejects(
+      async () => {
+        await bulkImportReferences(collisionBatch);
+      },
+      /มีอยู่ในระบบแล้ว/
+    );
+
+    await clearReferences("lesson_exist_1");
+  });
+
   // Clean up
   await clearReferences("test_multi_ref");
 });
+

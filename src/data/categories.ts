@@ -1,22 +1,18 @@
 import { Category } from "@/types";
+import { INITIAL_CATEGORIES } from "./seedCategories";
+import {
+  getCategories as storageGetCategories,
+  getCategoryById as storageGetCategoryById,
+} from "@/lib/storage/categoryStorage";
 
-export const initialCategories: Category[] = [
-  {
-    id: "greeting-basic",
-    name: "ทักทาย พูดคุยเบื้องต้น",
-    description: "คำศัพท์พื้นฐานสำหรับการทักทายและสื่อสารในชีวิตประจำวัน",
-    order: 1,
-    isActive: true,
-  },
-];
+export const initialCategories: Category[] = INITIAL_CATEGORIES;
+
 
 export async function getCategories(): Promise<Category[]> {
-  return initialCategories
-    .filter((cat) => cat.isActive !== false)
-    .sort((a, b) => a.order - b.order);
+  return storageGetCategories();
 }
 
 export async function getCategoryById(id: string): Promise<Category | null> {
-  const category = initialCategories.find((item) => item.id === id);
-  return category ?? null;
+  return storageGetCategoryById(id);
 }
+

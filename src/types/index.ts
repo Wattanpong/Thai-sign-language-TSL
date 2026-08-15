@@ -4,4 +4,6 @@ export * from "./gesture";
 export * from "./gestureFeature";
 export * from "./gestureScore";
 export * from "./dtw";
+export * from "./dataset";
 export * from "@/lib/mediaPipe/types";
+

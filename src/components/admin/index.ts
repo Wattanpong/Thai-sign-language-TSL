@@ -4,3 +4,10 @@ export * from "./AdminLayout";
 export * from "./ReferenceRecorder";
 export * from "./ReferenceInspector";
 export * from "./ReferenceManager";
+export * from "./CategoryManager";
+export * from "./LessonManager";
+export * from "./AdminLessonReferenceContainer";
+export * from "./DatasetManager";
+
+
+

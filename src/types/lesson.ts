@@ -24,5 +24,9 @@ export interface Lesson {
 
   // Additional optional fields
   difficulty?: DifficultyLevel;
+  example?: string;
   isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
+

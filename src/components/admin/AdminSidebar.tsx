@@ -16,7 +16,9 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { href: "/admin", label: "Dashboard", exact: true },
   { href: "/admin/categories", label: "หมวดคำศัพท์" },
   { href: "/admin/lessons", label: "คำศัพท์" },
+  { href: "/admin/dataset", label: "สำรองและถ่ายโอนข้อมูล" },
 ];
+
 
 export interface AdminSidebarProps {
   isOpen?: boolean;

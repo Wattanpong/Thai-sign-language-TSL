@@ -1,3 +1,6 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   PageHeader,
@@ -9,11 +12,31 @@ import {
   Button,
   Badge,
 } from "@/components/ui";
-import { getCategories, getLessons } from "@/data";
+import { getCategories } from "@/lib/storage/categoryStorage";
+import { getLessons } from "@/lib/storage/lessonStorage";
 
-export default async function AdminDashboardPage() {
-  const categories = await getCategories();
-  const lessons = await getLessons();
+export default function AdminDashboardPage() {
+  const [categoryCount, setCategoryCount] = useState<number>(0);
+  const [lessonCount, setLessonCount] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const [cats, les] = await Promise.all([
+          getCategories({ includeInactive: true }),
+          getLessons({ includeInactive: true }),
+        ]);
+        setCategoryCount(cats.length);
+        setLessonCount(les.length);
+      } catch {
+        // fallback
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadStats();
+  }, []);
 
   return (
     <div className="space-y-8">
@@ -30,7 +53,9 @@ export default async function AdminDashboardPage() {
             <CardDescription className="text-xs text-[#64748B] font-medium">
               หมวดคำศัพท์ทั้งหมด
             </CardDescription>
-            <CardTitle className="text-3xl font-bold text-[#0F172A]">{categories.length}</CardTitle>
+            <CardTitle className="text-3xl font-bold text-[#0F172A]">
+              {loading ? "..." : categoryCount}
+            </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <Link href="/admin/categories">
@@ -46,7 +71,9 @@ export default async function AdminDashboardPage() {
             <CardDescription className="text-xs text-[#64748B] font-medium">
               คำศัพท์ในระบบ
             </CardDescription>
-            <CardTitle className="text-3xl font-bold text-[#0F172A]">{lessons.length}</CardTitle>
+            <CardTitle className="text-3xl font-bold text-[#0F172A]">
+              {loading ? "..." : lessonCount}
+            </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <Link href="/admin/lessons">
@@ -116,3 +143,4 @@ export default async function AdminDashboardPage() {
     </div>
   );
 }
+
