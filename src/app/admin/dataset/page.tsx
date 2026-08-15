@@ -3,7 +3,7 @@ import { DatasetManager } from "@/components/admin";
 
 export default function AdminDatasetPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-5">
       <PageHeader
         badge="จัดการฐานข้อมูล"
         title="สำรองและถ่ายโอนข้อมูล (Dataset Management)"
@@ -12,5 +12,6 @@ export default function AdminDatasetPage() {
 
       <DatasetManager />
     </div>
+
   );
 }

@@ -105,8 +105,8 @@ export function ReferenceInspector({
     if (currentFrame.hands && currentFrame.hands.length > 0) {
       currentFrame.hands.forEach((hand) => {
         const isRightHand = hand.handedness === "Right";
-        const connectionColor = isRightHand ? "rgba(255, 180, 0, 0.9)" : "rgba(16, 185, 129, 0.9)";
-        const jointColor = isRightHand ? "#FFB400" : "#10B981";
+        const connectionColor = isRightHand ? "rgba(14, 165, 233, 0.9)" : "rgba(16, 185, 129, 0.9)";
+        const jointColor = isRightHand ? "#0EA5E9" : "#10B981";
 
         // Draw connections
         ctx.lineWidth = 3;
@@ -151,10 +151,11 @@ export function ReferenceInspector({
           ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
           ctx.fillRect(wx - textWidth / 2 - 4, wy - 11, textWidth + 8, 16);
 
-          ctx.fillStyle = isRightHand ? "#FFB400" : "#34D399";
+          ctx.fillStyle = isRightHand ? "#0EA5E9" : "#34D399";
           ctx.textAlign = "center";
           ctx.fillText(label, wx, wy + 1);
         }
+
       });
     }
   }, [currentFrame]);
@@ -350,7 +351,8 @@ export function ReferenceInspector({
                   setIsPlaying(false);
                   setCurrentFrameIndex(Number(e.target.value));
                 }}
-                className="w-full h-2 bg-[#E2E8F0] rounded-lg appearance-none cursor-pointer accent-[#FFB400]"
+                className="w-full h-2 bg-[#E2E8F0] rounded-lg appearance-none cursor-pointer accent-[#0EA5E9]"
+
               />
               <div className="flex justify-between text-[10px] font-mono text-[#64748B]">
                 <span>0.00s (Start)</span>

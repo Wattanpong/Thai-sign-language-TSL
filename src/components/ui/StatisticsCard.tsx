@@ -19,29 +19,31 @@ export function StatisticsCard({
   return (
     <div
       className={cn(
-        "p-6 bg-white border border-[#E2E8F0] rounded-xl shadow-xs space-y-2 transition-all hover:shadow-sm",
+        "p-4 sm:p-5 bg-white border border-[#E2E8F0] rounded-2xl space-y-1.5",
         className
       )}
       {...props}
     >
-      <div className="flex items-center justify-between text-xs font-semibold text-[#64748B] uppercase tracking-wider">
+
+      <div className="flex items-center justify-between text-xs font-medium text-[#64748B]">
         <span>{label}</span>
         {icon && (
-          <span className="p-1.5 bg-[#F1F5F9] text-[#334155] rounded-md">
+          <span className="p-1.5 bg-[#F8FAFC] text-[#475569] rounded-lg">
             {icon}
           </span>
         )}
       </div>
       <div className="flex items-baseline gap-2">
-        <span className="text-3xl font-bold text-[#0F172A]">
+        <span className="text-2xl sm:text-3xl font-semibold text-[#0F172A] tracking-tight">
           {value}
         </span>
       </div>
       {description && (
-        <p className="text-xs text-[#64748B] pt-1 leading-relaxed">
+        <p className="text-xs text-[#64748B] pt-0.5 leading-relaxed">
           {description}
         </p>
       )}
     </div>
+
   );
 }

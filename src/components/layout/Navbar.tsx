@@ -34,12 +34,12 @@ export function Navbar() {
         {/* Brand Logo */}
         <Link
           href="/"
-          className="flex items-center gap-3 group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FFB400] rounded-lg"
+          className="flex items-center gap-3 group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0EA5E9] rounded-lg"
           aria-label="Thai Sign Language Platform หน้าหลัก"
         >
-          <div className="w-9 h-9 bg-[#0F172A] text-white flex items-center justify-center rounded-xl shadow-xs group-hover:bg-[#FFB400] group-hover:text-[#0F172A] transition-colors">
+          <div className="w-8 h-8 bg-[#0F172A] text-white flex items-center justify-center rounded-xl transition-colors">
             <svg
-              className="w-5 h-5"
+              className="w-4 h-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -53,18 +53,18 @@ export function Navbar() {
             </svg>
           </div>
           <div className="flex flex-col">
-            <span className="text-base font-bold tracking-tight text-[#0F172A] group-hover:text-[#B45309] transition-colors leading-tight">
-              Thai Sign Language Platform
+            <span className="text-sm font-semibold tracking-tight text-[#0F172A] leading-tight">
+              TSL Platform
             </span>
-            <span className="text-xs text-[#64748B] font-normal">
-              ระบบเรียนรู้ภาษามือไทยออนไลน์
+            <span className="text-[11px] text-[#64748B] font-normal">
+              เรียนภาษามือไทยกับ AI
             </span>
           </div>
         </Link>
 
         {/* Desktop Navigation (Right Aligned) */}
         <nav
-          className="hidden md:flex items-center gap-1 sm:gap-2 text-sm font-medium text-[#475569]"
+          className="hidden md:flex items-center gap-1 sm:gap-1.5 text-xs font-medium text-[#475569]"
           aria-label="เมนูหลัก"
         >
           {NAV_ITEMS.map((item) => {
@@ -78,10 +78,10 @@ export function Navbar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "px-3.5 py-2 rounded-xl transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FFB400]",
+                  "px-3.5 py-1.5 rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0EA5E9]",
                   isActive
-                    ? "text-[#92400E] font-semibold bg-[#FFFBEB] border border-[#FDE68A]"
-                    : "hover:text-[#0F172A] hover:bg-[#F1F5F9]"
+                    ? "text-[#0F172A] font-semibold bg-[#F8FAFC] border border-[#E2E8F0]"
+                    : "hover:text-[#0F172A] hover:bg-[#F8FAFC]"
                 )}
                 aria-current={isActive ? "page" : undefined}
               >
@@ -91,6 +91,7 @@ export function Navbar() {
           })}
         </nav>
 
+
         {/* Mobile Menu Button */}
         <button
           type="button"
@@ -98,7 +99,7 @@ export function Navbar() {
           aria-expanded={mobileMenuOpen}
           aria-controls="mobile-navigation"
           aria-label={mobileMenuOpen ? "ปิดเมนู" : "เปิดเมนู"}
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#E2E8F0] bg-white text-[#334155] hover:bg-[#F1F5F9] md:hidden focus-visible:outline-2 focus-visible:outline-[#FFB400]"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#E2E8F0] bg-white text-[#334155] hover:bg-[#F1F5F9] md:hidden focus-visible:outline-2 focus-visible:outline-[#0EA5E9]"
         >
           {mobileMenuOpen ? (
             <svg
@@ -155,14 +156,15 @@ export function Navbar() {
                   className={cn(
                     "flex items-center justify-between rounded-xl px-4 py-2.5 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-[#FFFBEB] text-[#92400E] font-semibold border border-[#FDE68A]"
-                      : "text-[#334155] hover:bg-[#F1F5F9]"
+                      ? "bg-[#F8FAFC] text-[#0F172A] font-semibold border border-[#E2E8F0]"
+                      : "text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A]"
                   )}
+
                   aria-current={isActive ? "page" : undefined}
                 >
                   <span>{item.label}</span>
                   {isActive && (
-                    <span className="h-2 w-2 rounded-full bg-[#FFB400]" />
+                    <span className="h-2 w-2 rounded-full bg-[#0EA5E9]" />
                   )}
                 </Link>
               );
@@ -170,6 +172,7 @@ export function Navbar() {
           </nav>
         </div>
       )}
+
     </header>
   );
 }

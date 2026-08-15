@@ -338,8 +338,9 @@ export function LessonManager() {
   const totalActive = lessons.filter((l) => l.isActive !== false).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-5">
       {/* Toast Notification */}
+
       {notification && (
         <div
           className={`p-4 rounded-xl border flex items-center justify-between text-sm font-medium transition-all ${
@@ -398,7 +399,7 @@ export function LessonManager() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#FFB400] transition-colors"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] transition-colors"
             >
               <option value="all">หมวดหมู่ทั้งหมด ({lessons.length})</option>
               {categories.map((c) => (
@@ -413,12 +414,13 @@ export function LessonManager() {
             <select
               value={selectedGestureType}
               onChange={(e) => setSelectedGestureType(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#FFB400] transition-colors"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] transition-colors"
             >
               <option value="all">ทุกประเภทท่าทาง</option>
               <option value="dynamic">ท่าทางต่อเนื่อง (Dynamic)</option>
               <option value="static">ท่าทางคงที่ (Static)</option>
             </select>
+
           </div>
         </div>
       </div>
@@ -625,7 +627,7 @@ export function LessonManager() {
                   value={formData.categoryId}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#FFB400] transition-colors"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] transition-colors"
                 >
                   <option value="" disabled>
                     -- เลือกหมวดหมู่ --
@@ -650,7 +652,7 @@ export function LessonManager() {
                   placeholder="อธิบายตำแหน่งมือ การเคลื่อนไหว และข้อสังเกตของท่าทาง..."
                   rows={3}
                   required
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#FFB400] transition-colors"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] transition-colors"
                 />
               </div>
 
@@ -662,7 +664,7 @@ export function LessonManager() {
                     name="gestureType"
                     value={formData.gestureType}
                     onChange={handleInputChange}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#FFB400]"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]"
                   >
                     <option value="dynamic">ท่าทางต่อเนื่อง (Dynamic)</option>
                     <option value="static">ท่าทางคงที่ (Static)</option>
@@ -675,7 +677,7 @@ export function LessonManager() {
                     name="difficulty"
                     value={formData.difficulty}
                     onChange={handleInputChange}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#FFB400]"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]"
                   >
                     <option value="beginner">ระดับเริ่มต้น (Beginner)</option>
                     <option value="intermediate">ระดับปานกลาง (Intermediate)</option>
@@ -683,6 +685,7 @@ export function LessonManager() {
                   </select>
                 </div>
               </div>
+
 
               {/* Order & Active */}
               <div className="grid grid-cols-2 gap-4">

@@ -86,10 +86,11 @@ export function PracticeResultCard({
             <span className="text-xs uppercase tracking-wider text-slate-300 font-medium mb-1">
               คะแนนความถูกต้องรวม
             </span>
-            <div className="text-4xl sm:text-5xl font-black tracking-tight text-[#FFB400]">
+            <div className="text-4xl sm:text-5xl font-black tracking-tight text-[#38BDF8]">
               {score.overallScore}
               <span className="text-xl font-normal text-slate-400">/100</span>
             </div>
+
           </div>
 
           <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col justify-center">

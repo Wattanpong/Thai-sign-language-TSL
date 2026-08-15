@@ -106,21 +106,22 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
                   href={item.href}
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-[#FFB400]",
+                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-[#0EA5E9]",
                     isActive
-                      ? "bg-[#FFFBEB] text-[#92400E] font-semibold border border-[#FDE68A]"
-                      : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
+                      ? "bg-[#F0F9FF] text-[#0369A1] font-semibold border border-[#BAE6FD]"
+                      : "text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A]"
                   )}
                   aria-current={isActive ? "page" : undefined}
                 >
                   <span
                     className={cn(
                       "h-2 w-2 rounded-full",
-                      isActive ? "bg-[#FFB400]" : "bg-[#CBD5E1]"
+                      isActive ? "bg-[#0EA5E9]" : "bg-[#CBD5E1]"
                     )}
                   />
                   <span>{item.label}</span>
                 </Link>
+
               );
             })}
           </nav>

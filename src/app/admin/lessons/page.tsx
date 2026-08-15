@@ -3,7 +3,7 @@ import { LessonManager } from "@/components/admin";
 
 export default function AdminLessonsPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-5">
       <PageHeader
         badge="จัดการเนื้อหา"
         title="คำศัพท์และบทเรียน (Lesson & Vocabulary Management)"
@@ -12,6 +12,7 @@ export default function AdminLessonsPage() {
 
       <LessonManager />
     </div>
+
   );
 }
 

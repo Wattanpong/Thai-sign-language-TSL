@@ -22,20 +22,22 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-medium rounded-xl transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FFB400] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none cursor-pointer";
+      "inline-flex items-center justify-center font-medium rounded-xl transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0EA5E9] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none cursor-pointer";
 
     const variantStyles = {
       primary:
-        "bg-[#0F172A] text-white hover:bg-[#FFB400] hover:text-[#0F172A] shadow-xs font-semibold active:bg-[#E5A200]",
+        "bg-[#0F172A] text-white hover:bg-[#1E293B] active:bg-[#334155]",
       amber:
-        "bg-[#FFB400] text-[#0F172A] hover:bg-[#E5A200] active:bg-[#CC9000] shadow-xs font-semibold",
+        "bg-[#0EA5E9] text-white hover:bg-[#0284C7] active:bg-[#0369A1]",
       secondary:
-        "bg-[#F1F5F9] text-[#334155] hover:bg-[#E2E8F0] active:bg-[#CBD5E1]",
+        "bg-[#F8FAFC] text-[#334155] hover:bg-[#F1F5F9] active:bg-[#E2E8F0] border border-[#E2E8F0]",
       outline:
-        "border border-[#CBD5E1] text-[#0F172A] bg-white hover:bg-[#F8FAFC] active:bg-[#F1F5F9]",
+        "border border-[#E2E8F0] text-[#0F172A] bg-white hover:bg-[#F8FAFC] active:bg-[#F1F5F9]",
       ghost:
-        "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]",
+        "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]",
     };
+
+
 
     const sizeStyles = {
       sm: "h-9 px-3 text-xs gap-1.5",

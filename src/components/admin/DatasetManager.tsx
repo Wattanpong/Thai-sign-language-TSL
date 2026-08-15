@@ -399,8 +399,9 @@ export function DatasetManager() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5 sm:space-y-6">
       {/* Notification Toast */}
+
       {notification && (
         <div
           role="alert"
@@ -453,7 +454,7 @@ export function DatasetManager() {
         {/* EXPORT SECTION */}
         <Card className="flex flex-col justify-between">
           <CardHeader>
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#FFB400] uppercase tracking-wider mb-1">
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#0EA5E9] uppercase tracking-wider mb-1">
               <span>📤 Export</span>
             </div>
             <CardTitle>ส่งออก Dataset (Export Dataset)</CardTitle>
@@ -470,7 +471,7 @@ export function DatasetManager() {
                     type="checkbox"
                     checked={exportIncludeSeeds}
                     onChange={(e) => setExportIncludeSeeds(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-[#FFB400] focus:ring-[#FFB400]"
+                    className="h-4 w-4 rounded border-gray-300 text-[#0EA5E9] focus:ring-[#0EA5E9]"
                   />
                   <span className="text-sm font-medium text-[#1E293B]">
                     รวม Seed References เริ่มต้นในไฟล์ส่งออก (แนะนำ)
@@ -478,16 +479,32 @@ export function DatasetManager() {
                 </label>
                 <p className="text-xs text-[#64748B] pl-7 leading-relaxed">
                   เมื่อเปิดใช้งาน ไฟล์ Dataset จะประกอบด้วยท่าทางต้นแบบดั้งเดิมของระบบด้วย
-                  ทำให้สามารถนำไปติดตั้งบนเครื่องอื่นได้อย่างสมบูรณ์ 100%
                 </p>
               </div>
 
-              <div className="text-xs text-[#64748B] space-y-1.5 p-3.5 bg-[#FFFBEB] border border-[#FDE68A] rounded-xl text-[#92400E]">
-                <p className="font-semibold">📦 โครงสร้างที่จะถูกส่งออก:</p>
-                <p>• Categories: {stats.categoriesCount} รายการ</p>
-                <p>• Lessons: {stats.lessonsCount} รายการ</p>
-                <p>• References: {stats.referencesCount} ชุดข้อมูลท่าทาง</p>
+              {/* Summary of Exportable Items */}
+              <div className="grid grid-cols-3 gap-3 text-center text-xs">
+                <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl">
+                  <div className="text-base font-bold text-[#0F172A]">{stats.categoriesCount}</div>
+                  <div className="text-[11px] text-[#64748B] mt-0.5">หมวดหมู่</div>
+                </div>
+                <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl">
+                  <div className="text-base font-bold text-[#0F172A]">{stats.lessonsCount}</div>
+                  <div className="text-[11px] text-[#64748B] mt-0.5">บทเรียน/คำศัพท์</div>
+                </div>
+                <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl">
+                  <div className="text-base font-bold text-[#0F172A]">{stats.referencesCount}</div>
+                  <div className="text-[11px] text-[#64748B] mt-0.5">References</div>
+                </div>
               </div>
+
+              {/* Warning note on Seed Exclusion */}
+              {!exportIncludeSeeds && (
+                <div className="text-xs text-[#64748B] space-y-1.5 p-3.5 bg-[#F0F9FF] border border-[#BAE6FD] rounded-xl text-[#0369A1]">
+                  <span className="font-bold">⚠️ ข้อควรทราบ:</span> คุณเลือกที่จะไม่รวม Seed Reference เริ่มต้น
+                  ไฟล์ที่ส่งออกจะมีเฉพาะท่าทางที่ถูกอัดบันทึกเพิ่มขึ้นใหม่เท่านั้น
+                </div>
+              )}
             </div>
 
             <Button
@@ -503,7 +520,7 @@ export function DatasetManager() {
         {/* IMPORT SECTION */}
         <Card className="flex flex-col justify-between">
           <CardHeader>
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#3B82F6] uppercase tracking-wider mb-1">
+            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-1">
               <span>📥 Import</span>
             </div>
             <CardTitle>นำเข้า Dataset (Import Dataset)</CardTitle>
@@ -512,7 +529,7 @@ export function DatasetManager() {
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-6 flex-1 flex flex-col justify-between">
+          <CardContent className="space-y-5 flex-1 flex flex-col justify-between">
             <div className="space-y-4">
               {/* File Upload Area */}
               <div>
@@ -526,7 +543,7 @@ export function DatasetManager() {
                 />
                 <label
                   htmlFor="dataset-file-input"
-                  className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-[#CBD5E1] hover:border-[#FFB400] bg-[#F8FAFC] hover:bg-[#FFFBEB]/30 rounded-xl cursor-pointer transition-all text-center group"
+                  className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-[#CBD5E1] hover:border-[#0EA5E9] bg-[#F8FAFC] hover:bg-[#F0F9FF]/30 rounded-xl cursor-pointer transition-all text-center group"
                 >
                   <span className="text-2xl mb-1.5 group-hover:scale-110 transition-transform">
                     {isValidating ? "⏳" : "📄"}
@@ -574,7 +591,7 @@ export function DatasetManager() {
                       onClick={() => handleOptionChange("merge", duplicateStrategy)}
                       className={`p-2.5 rounded-lg border text-left font-medium transition-all ${
                         importMode === "merge"
-                          ? "bg-white border-[#FFB400] text-[#92400E] shadow-xs"
+                          ? "bg-white border-[#0EA5E9] text-[#0369A1] shadow-xs"
                           : "bg-[#F1F5F9] border-transparent text-[#64748B] hover:bg-white"
                       }`}
                     >
@@ -607,7 +624,7 @@ export function DatasetManager() {
                         onClick={() => handleOptionChange(importMode, "skip")}
                         className={`p-2 rounded-lg border text-center font-medium text-[11px] transition-all ${
                           duplicateStrategy === "skip"
-                            ? "bg-white border-[#FFB400] text-[#92400E] font-bold"
+                            ? "bg-white border-[#0EA5E9] text-[#0369A1] font-bold"
                             : "bg-[#F1F5F9] border-transparent text-[#64748B]"
                         }`}
                       >
@@ -618,12 +635,13 @@ export function DatasetManager() {
                         onClick={() => handleOptionChange(importMode, "overwrite")}
                         className={`p-2 rounded-lg border text-center font-medium text-[11px] transition-all ${
                           duplicateStrategy === "overwrite"
-                            ? "bg-white border-[#FFB400] text-[#92400E] font-bold"
+                            ? "bg-white border-[#0EA5E9] text-[#0369A1] font-bold"
                             : "bg-[#F1F5F9] border-transparent text-[#64748B]"
                         }`}
                       >
                         ↻ เขียนทับ
                       </button>
+
                       <button
                         type="button"
                         onClick={() => handleOptionChange(importMode, "error")}
@@ -798,7 +816,7 @@ export function DatasetManager() {
                 placeholder="ชื่อ Snapshot (ไม่ระบุได้)"
                 value={customBackupName}
                 onChange={(e) => setCustomBackupName(e.target.value)}
-                className="h-10 px-3 text-xs border border-[#CBD5E1] rounded-xl focus:outline-[#FFB400] bg-white w-48"
+                className="h-10 px-3 text-xs border border-[#CBD5E1] rounded-xl focus:outline-[#0EA5E9] bg-white w-48"
               />
               <Button
                 onClick={handleCreateSnapshot}
@@ -946,7 +964,7 @@ export function DatasetManager() {
                 className={`font-semibold px-5 ${
                   confirmModal.dangerLevel === "danger"
                     ? "bg-[#DC2626] text-white hover:bg-[#B91C1C]"
-                    : "bg-[#0F172A] text-white hover:bg-[#FFB400] hover:text-[#0F172A]"
+                    : "bg-[#0F172A] text-white hover:bg-[#0EA5E9]"
                 }`}
               >
                 {isModalProcessing ? "กำลังดำเนินการ..." : "ยืนยันดำเนินการ"}
@@ -955,6 +973,7 @@ export function DatasetManager() {
           </div>
         </div>
       )}
+
 
     </div>
   );

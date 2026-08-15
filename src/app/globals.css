@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --primary: #ffb400;
-  --primary-hover: #e5a200;
-  --primary-active: #cc9000;
-  --primary-fg: #1a1300;
-  --primary-light: #fff8e6;
-  --primary-border: #ffd366;
+  --primary: #0ea5e9;
+  --primary-hover: #0284c7;
+  --primary-active: #0369a1;
+  --primary-fg: #ffffff;
+  --primary-light: #e0f2fe;
+  --primary-border: #7dd3fc;
 
   --background: #f8fafc;
   --foreground: #0f172a;
@@ -20,10 +20,11 @@
 
   --border: #e2e8f0;
   --input: #e2e8f0;
-  --ring: #ffb400;
+  --ring: #0ea5e9;
 
   --radius: 0.75rem;
 }
+
 
 @theme inline {
   --color-primary: var(--primary);
@@ -63,3 +64,13 @@ body {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
+
+/* Utility for hiding scrollbar while preserving scroll functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+

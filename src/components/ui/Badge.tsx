@@ -13,18 +13,20 @@ export function Badge({
 }: BadgeProps) {
   const variantStyles = {
     default:
-      "bg-[#F1F5F9] text-[#475569] border-[#E2E8F0] font-medium",
+      "bg-[#F8FAFC] text-[#475569] border-[#E2E8F0] font-normal",
     tag:
-      "bg-[#F1F5F9] border-[#CBD5E1] text-[#334155] font-semibold",
+      "bg-[#F8FAFC] border-[#E2E8F0] text-[#334155] font-medium",
     primary:
-      "bg-[#FFFBEB] text-[#92400E] border-[#FDE68A] font-semibold",
+      "bg-[#E0F2FE] text-[#0369A1] border-[#BAE6FD] font-medium",
     success:
-      "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0] font-medium",
+      "bg-[#F0FDF4] text-[#166534] border-[#DCFCE7] font-medium",
     warning:
-      "bg-[#FFFBEB] text-[#B45309] border-[#FDE68A] font-medium",
+      "bg-[#FEF3C7] text-[#92400E] border-[#FDE68A] font-medium",
     outline:
-      "text-[#475569] border-[#E2E8F0] bg-white font-medium",
+      "text-[#64748B] border-[#E2E8F0] bg-white font-normal",
   };
+
+
 
   return (
     <span

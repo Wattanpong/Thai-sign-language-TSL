@@ -171,7 +171,7 @@ export function PracticeDiagnosticPanel({
 
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
             <span className="text-slate-500 block font-medium">Buffer Frames</span>
-            <span className="font-bold text-[#FFB400] text-sm">{liveFrameCount} Frames</span>
+            <span className="font-bold text-[#0EA5E9] text-sm">{liveFrameCount} Frames</span>
             <span className="text-[10px] text-slate-400 block">Duration: {liveDurationSec}s</span>
           </div>
 
@@ -213,9 +213,10 @@ export function PracticeDiagnosticPanel({
 
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
             <span className="text-slate-500 block font-medium">Final Evaluation</span>
-            <span className="font-bold text-[#FFB400] text-sm">
+            <span className="font-bold text-[#0EA5E9] text-sm">
               {evaluationResult ? `${evaluationResult.score.overallScore}/100` : "-"}
             </span>
+
             <span className="text-[10px] text-slate-400 block">
               Status: {evaluationResult ? (evaluationResult.score.overallScore >= 80 ? "ผ่าน" : "ต้องฝึกเพิ่ม") : "-"}
             </span>

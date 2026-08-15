@@ -58,8 +58,9 @@ export function AdminLessonReferenceContainer({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-5">
       <PageHeader
+
         badge="Reference Gesture Management"
         title={`จัดการท่าทางอ้างอิง: "${lesson.word}"`}
         description="ระบบบันทึกและตรวจสอบคุณภาพของ Reference Gesture ต้นแบบสำหรับบทเรียนภาษามือไทย"

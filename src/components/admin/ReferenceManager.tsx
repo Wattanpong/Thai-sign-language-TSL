@@ -219,7 +219,7 @@ export function ReferenceManager({ lesson }: ReferenceManagerProps) {
                 key={ref.id}
                 className={`p-5 transition-all ${
                   ref.isPrimary
-                    ? "border-[#FFB400] bg-amber-50/20 shadow-xs ring-1 ring-[#FFB400]/40"
+                    ? "border-[#0EA5E9] bg-sky-50/20 shadow-xs ring-1 ring-[#0EA5E9]/40"
                     : "border-[#E2E8F0] bg-white hover:border-[#CBD5E1]"
                 }`}
               >
@@ -232,10 +232,11 @@ export function ReferenceManager({ lesson }: ReferenceManagerProps) {
                       </span>
 
                       {ref.isPrimary && (
-                        <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-[#FFB400] text-[#0F172A] shadow-xs">
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#0EA5E9] text-white shadow-xs">
                           ★ Reference หลัก (Primary)
                         </span>
                       )}
+
 
                       <Badge
                         variant={isGood ? "success" : isFair ? "warning" : "outline"}

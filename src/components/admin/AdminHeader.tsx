@@ -15,7 +15,8 @@ export function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
           type="button"
           onClick={onMenuToggle}
           aria-label="เปิด/ปิด แถบเมนูด้านข้าง"
-          className="rounded-xl border border-[#E2E8F0] p-2 text-[#334155] hover:bg-[#F1F5F9] md:hidden focus-visible:outline-2 focus-visible:outline-[#FFB400]"
+          className="rounded-xl border border-[#E2E8F0] p-2 text-[#334155] hover:bg-[#F1F5F9] md:hidden focus-visible:outline-2 focus-visible:outline-[#0EA5E9]"
+
         >
           <svg
             className="h-5 w-5"

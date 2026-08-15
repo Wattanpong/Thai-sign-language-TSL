@@ -580,7 +580,7 @@ export function ReferenceRecorder({ lesson, onSaved, onCancel }: ReferenceRecord
               {/* Standby screen when Camera is OFF */}
               {cameraState === "off" && (
                 <div className="flex flex-col items-center justify-center text-center p-8 text-slate-400 space-y-4">
-                  <div className="h-16 w-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-[#FFB400]">
+                  <div className="h-16 w-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-[#0EA5E9]">
                     <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
@@ -602,10 +602,11 @@ export function ReferenceRecorder({ lesson, onSaved, onCancel }: ReferenceRecord
               {/* Requesting Camera */}
               {cameraState === "requesting" && (
                 <div className="flex flex-col items-center justify-center text-center p-8 text-slate-400 space-y-3">
-                  <svg className="animate-spin h-10 w-10 text-[#FFB400]" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin h-10 w-10 text-[#0EA5E9]" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
+
                   <p className="text-sm font-semibold text-white">
                     กำลังโหลดโมเดล MediaPipe & เริ่มต้นกล้อง...
                   </p>
@@ -735,17 +736,18 @@ export function ReferenceRecorder({ lesson, onSaved, onCancel }: ReferenceRecord
 
           {/* Recorded Result Summary Card */}
           {recordedGesture && (
-            <Card className="p-6 space-y-4 bg-[#FFFBEB] border-[#FDE68A]">
+            <Card className="p-6 space-y-4 bg-[#F0F9FF] border-[#BAE6FD]">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#92400E] uppercase">
+                <span className="text-xs font-bold text-[#0369A1] uppercase">
                   ผลการบันทึกท่าทาง (Summary)
                 </span>
                 <Badge variant="primary">พร้อมบันทึก</Badge>
               </div>
 
-              <div className="space-y-2 text-xs text-[#78350F]">
+              <div className="space-y-2 text-xs text-[#0C4A6E]">
                 <div className="flex justify-between">
                   <span>ความยาวเวลา (Duration):</span>
+
                   <span className="font-mono font-bold">
                     {(recordedGesture.durationMs / 1000).toFixed(2)} วินาที
                   </span>

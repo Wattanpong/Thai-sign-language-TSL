@@ -19,16 +19,18 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 md:flex-row md:items-center md:justify-between py-6 sm:py-8 border-b border-[#E2E8F0] mb-8",
+        "flex flex-col gap-3 md:flex-row md:items-center md:justify-between py-4 sm:py-5 border-b border-[#E2E8F0] mb-5 sm:mb-6",
         className
       )}
     >
+
       <div className="space-y-1.5">
         {badge && (
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#FFF8E6] text-[#805B00] border border-[#FFD366] mb-1">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#E0F2FE] text-[#0369A1] border border-[#BAE6FD] mb-1">
             {badge}
           </div>
         )}
+
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A]">
           {title}
         </h1>

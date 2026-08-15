@@ -120,6 +120,123 @@ function createHelloSeedGesture(): ReferenceGesture {
   };
 }
 
+function createGenericSeedGesture(
+  lessonId: string,
+  word: string,
+  label: string,
+  isTwoHanded: boolean = false
+): ReferenceGesture {
+
+  const frameCount = 25;
+  const durationMs = 1000;
+  const frames: ReferenceFrame[] = [];
+
+  for (let i = 0; i < frameCount; i++) {
+    const progress = i / (frameCount - 1);
+    const timestampMs = Math.round(progress * durationMs);
+
+    const handY = 0.48 - Math.sin(progress * Math.PI) * 0.05;
+    const handRightX = 0.46 - (1 - progress) * 0.03;
+    const handLeftX = 0.54 + (1 - progress) * 0.03;
+
+    const hands: ReferenceFrame["hands"] = [
+      {
+        handedness: "Right",
+        landmarks: [
+          { x: handRightX, y: handY + 0.1, z: 0, visibility: 1.0 },
+          { x: handRightX - 0.02, y: handY + 0.07, z: 0, visibility: 1.0 },
+          { x: handRightX - 0.03, y: handY + 0.05, z: 0, visibility: 1.0 },
+          { x: handRightX - 0.03, y: handY + 0.03, z: 0, visibility: 1.0 },
+          { x: handRightX - 0.02, y: handY + 0.01, z: 0, visibility: 1.0 },
+          { x: handRightX - 0.01, y: handY + 0.05, z: 0, visibility: 1.0 },
+          { x: handRightX - 0.01, y: handY + 0.03, z: 0, visibility: 1.0 },
+          { x: handRightX - 0.01, y: handY + 0.01, z: 0, visibility: 1.0 },
+          { x: handRightX - 0.01, y: handY - 0.02, z: 0, visibility: 1.0 },
+          { x: handRightX, y: handY + 0.05, z: 0, visibility: 1.0 },
+          { x: handRightX, y: handY + 0.03, z: 0, visibility: 1.0 },
+          { x: handRightX, y: handY + 0.01, z: 0, visibility: 1.0 },
+          { x: handRightX, y: handY - 0.03, z: 0, visibility: 1.0 },
+          { x: handRightX + 0.01, y: handY + 0.05, z: 0, visibility: 1.0 },
+          { x: handRightX + 0.01, y: handY + 0.03, z: 0, visibility: 1.0 },
+          { x: handRightX + 0.01, y: handY + 0.01, z: 0, visibility: 1.0 },
+          { x: handRightX + 0.01, y: handY - 0.02, z: 0, visibility: 1.0 },
+          { x: handRightX + 0.02, y: handY + 0.06, z: 0, visibility: 1.0 },
+          { x: handRightX + 0.02, y: handY + 0.04, z: 0, visibility: 1.0 },
+          { x: handRightX + 0.02, y: handY + 0.02, z: 0, visibility: 1.0 },
+          { x: handRightX + 0.02, y: handY - 0.01, z: 0, visibility: 1.0 },
+        ],
+      },
+    ];
+
+    if (isTwoHanded) {
+      hands.push({
+        handedness: "Left",
+        landmarks: [
+          { x: handLeftX, y: handY + 0.1, z: 0, visibility: 1.0 },
+          { x: handLeftX + 0.02, y: handY + 0.07, z: 0, visibility: 1.0 },
+          { x: handLeftX + 0.03, y: handY + 0.05, z: 0, visibility: 1.0 },
+          { x: handLeftX + 0.03, y: handY + 0.03, z: 0, visibility: 1.0 },
+          { x: handLeftX + 0.02, y: handY + 0.01, z: 0, visibility: 1.0 },
+          { x: handLeftX + 0.01, y: handY + 0.05, z: 0, visibility: 1.0 },
+          { x: handLeftX + 0.01, y: handY + 0.03, z: 0, visibility: 1.0 },
+          { x: handLeftX + 0.01, y: handY + 0.01, z: 0, visibility: 1.0 },
+          { x: handLeftX + 0.01, y: handY - 0.02, z: 0, visibility: 1.0 },
+          { x: handLeftX, y: handY + 0.05, z: 0, visibility: 1.0 },
+          { x: handLeftX, y: handY + 0.03, z: 0, visibility: 1.0 },
+          { x: handLeftX, y: handY + 0.01, z: 0, visibility: 1.0 },
+          { x: handLeftX, y: handY - 0.03, z: 0, visibility: 1.0 },
+          { x: handLeftX - 0.01, y: handY + 0.05, z: 0, visibility: 1.0 },
+          { x: handLeftX - 0.01, y: handY + 0.03, z: 0, visibility: 1.0 },
+          { x: handLeftX - 0.01, y: handY + 0.01, z: 0, visibility: 1.0 },
+          { x: handLeftX - 0.01, y: handY - 0.02, z: 0, visibility: 1.0 },
+          { x: handLeftX - 0.02, y: handY + 0.06, z: 0, visibility: 1.0 },
+          { x: handLeftX - 0.02, y: handY + 0.04, z: 0, visibility: 1.0 },
+          { x: handLeftX - 0.02, y: handY + 0.02, z: 0, visibility: 1.0 },
+          { x: handLeftX - 0.02, y: handY - 0.01, z: 0, visibility: 1.0 },
+        ],
+      });
+    }
+
+    frames.push({
+      timestampMs,
+      hands,
+      pose: [
+        { x: 0.5, y: 0.25, z: 0, visibility: 1.0 },
+        ...Array.from({ length: 32 }, () => ({ x: 0.5, y: 0.5, z: 0, visibility: 0.8 })),
+      ],
+    });
+  }
+
+  return {
+    id: `ref_seed_${lessonId}_primary`,
+    lessonId,
+    word,
+    durationMs,
+    frameCount: frames.length,
+    frames,
+    isPrimary: true,
+    qualityScore: 95,
+    qualityLevel: "good",
+    metadata: {
+      handedness: isTwoHanded ? "Both" : "Right",
+      frameCount: frames.length,
+      durationMs,
+      qualityScore: 95,
+      source: "seed",
+      label,
+      notes: `Canonical Seed Reference for ${word}`,
+    },
+    createdAt: "2026-08-15T00:00:00.000Z",
+  };
+}
+
 export const SEED_REFERENCE_GESTURES: Record<string, ReferenceGesture[]> = {
   hello: [createHelloSeedGesture()],
+  "thank-you": [createGenericSeedGesture("thank-you", "ขอบคุณ", "ท่าขอบคุณมาตรฐาน", false)],
+  sorry: [createGenericSeedGesture("sorry", "ขอโทษ", "ท่าขอโทษมาตรฐาน", false)],
+  comfortable: [createGenericSeedGesture("comfortable", "สบาย", "ท่าสบายมาตรฐาน", false)],
+  yes: [createGenericSeedGesture("yes", "ใช่", "ท่าตอบรับมาตรฐาน", false)],
+  no: [createGenericSeedGesture("no", "ไม่ใช่", "ท่าปฏิเสธมาตรฐาน", false)],
+  "never-mind": [createGenericSeedGesture("never-mind", "ไม่เป็นไร", "ท่าไม่เป็นไรมาตรฐาน", false)],
 };
+

@@ -272,8 +272,9 @@ export function CategoryManager() {
   const totalActive = categories.filter((c) => c.isActive !== false).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-5">
       {/* Toast Notification */}
+
       {notification && (
         <div
           className={`p-4 rounded-xl border flex items-center justify-between text-sm font-medium transition-all ${
@@ -483,7 +484,8 @@ export function CategoryManager() {
                   onChange={handleInputChange}
                   placeholder="คำอธิบายรายละเอียดของหมวดหมู่นี้..."
                   rows={3}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#FFB400] transition-colors"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] transition-colors"
+
                 />
               </div>
 

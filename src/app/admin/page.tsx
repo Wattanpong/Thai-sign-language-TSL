@@ -39,7 +39,7 @@ export default function AdminDashboardPage() {
   }, []);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5 sm:space-y-6">
       <PageHeader
         badge="ภาพรวมระบบ"
         title="Admin Dashboard"
@@ -47,19 +47,19 @@ export default function AdminDashboardPage() {
       />
 
       {/* Overview Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
         <Card className="bg-white border border-[#E2E8F0] shadow-xs">
-          <CardHeader>
+          <CardHeader className="p-4 sm:p-5">
             <CardDescription className="text-xs text-[#64748B] font-medium">
               หมวดคำศัพท์ทั้งหมด
             </CardDescription>
-            <CardTitle className="text-3xl font-bold text-[#0F172A]">
+            <CardTitle className="text-2xl sm:text-3xl font-bold text-[#0F172A]">
               {loading ? "..." : categoryCount}
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent className="p-4 sm:p-5 pt-0">
             <Link href="/admin/categories">
-              <Button variant="outline" size="sm" className="w-full font-medium text-[#0F172A]">
+              <Button variant="outline" size="sm" className="w-full font-medium text-xs text-[#0F172A]">
                 จัดการหมวดหมู่ →
               </Button>
             </Link>
@@ -67,17 +67,17 @@ export default function AdminDashboardPage() {
         </Card>
 
         <Card className="bg-white border border-[#E2E8F0] shadow-xs">
-          <CardHeader>
+          <CardHeader className="p-4 sm:p-5">
             <CardDescription className="text-xs text-[#64748B] font-medium">
               คำศัพท์ในระบบ
             </CardDescription>
-            <CardTitle className="text-3xl font-bold text-[#0F172A]">
+            <CardTitle className="text-2xl sm:text-3xl font-bold text-[#0F172A]">
               {loading ? "..." : lessonCount}
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent className="p-4 sm:p-5 pt-0">
             <Link href="/admin/lessons">
-              <Button variant="outline" size="sm" className="w-full font-medium text-[#0F172A]">
+              <Button variant="outline" size="sm" className="w-full font-medium text-xs text-[#0F172A]">
                 จัดการคำศัพท์ →
               </Button>
             </Link>
@@ -85,16 +85,16 @@ export default function AdminDashboardPage() {
         </Card>
 
         <Card className="bg-white border border-[#E2E8F0] shadow-xs">
-          <CardHeader>
+          <CardHeader className="p-4 sm:p-5">
             <CardDescription className="text-xs text-[#64748B] font-medium">
               สถานะระบบ AI Pipeline
             </CardDescription>
-            <div className="flex items-center gap-2 pt-2">
+            <div className="flex items-center gap-2 pt-1">
               <Badge variant="success">Architecture Ready</Badge>
             </div>
           </CardHeader>
-          <CardContent className="pt-0">
-            <p className="text-xs text-[#64748B]">
+          <CardContent className="p-4 sm:p-5 pt-0">
+            <p className="text-[11px] sm:text-xs text-[#64748B]">
               MediaPipe & DTW Modules พร้อมสำหรับการใช้งานในระบบแล้ว
             </p>
           </CardContent>
@@ -102,21 +102,21 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Quick Navigation Section */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-bold text-[#0F172A]">
+      <div className="space-y-3">
+        <h2 className="text-base sm:text-lg font-bold text-[#0F172A]">
           ทางลัดการจัดการ
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
           <Card className="bg-white border border-[#E2E8F0] shadow-xs">
-            <CardHeader>
-              <CardTitle className="text-base text-[#0F172A]">หมวดคำศัพท์ (Categories)</CardTitle>
+            <CardHeader className="p-4 sm:p-5">
+              <CardTitle className="text-sm sm:text-base text-[#0F172A]">หมวดคำศัพท์ (Categories)</CardTitle>
               <CardDescription className="text-xs text-[#64748B]">
                 เพิ่ม แก้ไข หรือจัดเรียงหมวดหมู่คำศัพท์ภาษามือ
               </CardDescription>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent className="p-4 sm:p-5 pt-0">
               <Link href="/admin/categories">
-                <Button variant="outline" size="sm" className="font-medium text-[#0F172A]">
+                <Button variant="outline" size="sm" className="font-medium text-xs text-[#0F172A]">
                   ไปที่หน้าหมวดคำศัพท์
                 </Button>
               </Link>
@@ -124,15 +124,15 @@ export default function AdminDashboardPage() {
           </Card>
 
           <Card className="bg-white border border-[#E2E8F0] shadow-xs">
-            <CardHeader>
-              <CardTitle className="text-base text-[#0F172A]">คำศัพท์และบทเรียน (Lessons)</CardTitle>
+            <CardHeader className="p-4 sm:p-5">
+              <CardTitle className="text-sm sm:text-base text-[#0F172A]">คำศัพท์และบทเรียน (Lessons)</CardTitle>
               <CardDescription className="text-xs text-[#64748B]">
                 จัดการรายการคำศัพท์ กำหนดประเภทท่าทาง Static/Dynamic
               </CardDescription>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent className="p-4 sm:p-5 pt-0">
               <Link href="/admin/lessons">
-                <Button variant="outline" size="sm" className="font-medium text-[#0F172A]">
+                <Button variant="outline" size="sm" className="font-medium text-xs text-[#0F172A]">
                   ไปที่หน้าคำศัพท์
                 </Button>
               </Link>
@@ -143,4 +143,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-

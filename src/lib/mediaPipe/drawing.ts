@@ -57,11 +57,12 @@ export function drawHandLandmarks(
     const handedness = handResult.handednesses[handIndex]?.[0];
     const category = handedness?.categoryName || (handIndex === 0 ? "Left" : "Right");
     
-    // Color coding: Right hand in warm Gold/Amber, Left hand in Emerald Green
+    // Color coding: Right hand in Cyan, Left hand in Emerald Green
     const isRightHand = category.toLowerCase().includes("right");
-    let connectionColor = isRightHand ? "rgba(255, 180, 0, 0.85)" : "rgba(16, 185, 129, 0.85)";
-    let jointColor = isRightHand ? "#FFB400" : "#10B981";
-    let textColor = isRightHand ? "#B45309" : "#047857";
+    let connectionColor = isRightHand ? "rgba(14, 165, 233, 0.85)" : "rgba(16, 185, 129, 0.85)";
+    let jointColor = isRightHand ? "#0EA5E9" : "#10B981";
+    let textColor = isRightHand ? "#0284C7" : "#047857";
+
 
     if (hasFault) {
       if (faultyComponents.includes("palmOrientation") || faultyComponents.includes("twoHand")) {
