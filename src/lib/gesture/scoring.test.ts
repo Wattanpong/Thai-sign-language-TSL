@@ -8,6 +8,7 @@ import {
   comparePalmOrientation,
   compareHandPosition,
   compareTwoHandRelationship,
+  applyForgivingScoreCurve,
 } from "./scoring";
 import {
   GestureFeatureFrame,
@@ -169,7 +170,7 @@ test("Gesture Scoring Engine Unit Tests", async (t) => {
     }));
 
     const result = scoreGesture(ref, user);
-    assert.ok(result.overallScore >= 80 && result.overallScore <= 95, `Got ${result.overallScore}`);
+    assert.ok(result.overallScore >= 80 && result.overallScore <= 100, `Got ${result.overallScore}`);
   });
 
   await t.test("3. Large Deviations -> Low Score (< 50)", () => {
@@ -195,6 +196,8 @@ test("Gesture Scoring Engine Unit Tests", async (t) => {
       }),
       leftHand: createMockHand("Left", {
         fingerCurls: { thumb: 1.0, index: 1.0, middle: 1.0, ring: 1.0, pinky: 1.0 },
+        palmNormal: { x: 0, y: 1, z: 0 },
+        handFacingVector: { x: 0, y: 1, z: 0 },
         posRelShoulderCenter: { x: -2.0, y: 2.0, z: 0 },
       }),
       twoHand: createMockTwoHand({ wristDistance: 2.5, symmetryScore: 0.1 }),
@@ -420,5 +423,30 @@ test("Gesture Scoring Engine Unit Tests", async (t) => {
 
     const result = scoreGesture(ref, user, { gestureType: "dynamic" });
     assert.ok(result.overallScore >= 90, `Expected score >= 90 with calibrated tolerance, got ${result.overallScore}`);
+  });
+
+  await t.test("19. Forgiving Score Curve: 60-70% similarity maps to 74-88 points (Pass Criterion >= 70%)", () => {
+    // Test direct curve properties
+    assert.equal(applyForgivingScoreCurve(100), 100);
+    assert.equal(applyForgivingScoreCurve(0), 0);
+
+    const scoreAt60 = Math.round(applyForgivingScoreCurve(60));
+    assert.ok(scoreAt60 >= 74 && scoreAt60 <= 78, `Expected 60% similarity to map to 74-78, got ${scoreAt60}`);
+
+    const scoreAt70 = Math.round(applyForgivingScoreCurve(70));
+    assert.ok(scoreAt70 >= 82 && scoreAt70 <= 88, `Expected 70% similarity to map to 82-88, got ${scoreAt70}`);
+
+    // End-to-end moderate variation gesture scores in pass range (>= 70%)
+    const ref = createMockSequence(10, 1000);
+    const learnerWithModerateDeviations = createMockSequence(10, 1000, () => ({
+      rightHand: createMockHand("Right", {
+        fingerAngles: createMockFingerAngles({ indexPIP: 155, middlePIP: 155 }), // ~20 deg diff
+        fingerCurls: createMockFingerCurls({ index: 0.25, middle: 0.25 }), // ~0.2 curl diff
+        posRelShoulderCenter: { x: -0.2, y: 0.25, z: 0 }, // slightly higher
+      }),
+    }));
+
+    const result = scoreGesture(ref, learnerWithModerateDeviations, { gestureType: "dynamic" });
+    assert.ok(result.overallScore >= 75, `Learner with acceptable form must pass (>= 75), got ${result.overallScore}`);
   });
 });

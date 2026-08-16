@@ -64,7 +64,26 @@ export function diffToScore(
   return Math.max(0.0, Math.min(100.0, score));
 }
 
+/**
+ * Applies an accessible & forgiving score mapping curve.
+ * Maps a similarity level of 60% to ~74-75 points (Passing grade >= 70%),
+ * and 70% similarity to ~84 points ("Good"), while strictly penalizing wrong gestures (score < 30).
+ */
+export function applyForgivingScoreCurve(score: number): number {
+  const s = Math.max(0, Math.min(100, score));
+  if (s <= 0) return 0;
+  if (s >= 100) return 100;
 
+  if (s < 20) {
+    return s * 0.8;
+  }
+
+  // Smooth polynomial ease-out curve connecting (20, 16) -> (60, 76) -> (70, 86) -> (100, 100)
+  const t = (s - 20) / 80.0;
+  const easeOut = 1.0 - Math.pow(1.0 - t, 1.85);
+  const mapped = 16.0 + easeOut * 84.0;
+  return Math.max(0, Math.min(100, mapped));
+}
 
 /* ==========================================================================
    3. INDIVIDUAL FEATURE COMPARISON FUNCTIONS
@@ -84,7 +103,8 @@ export function compareFingerAngles(
 
   keys.forEach((k) => {
     const diff = Math.abs(refAngles[k] - userAngles[k]);
-    const jointScore = diffToScore(diff, 10.0 * tolMul, 25.0);
+    // Margin of Error: 18 deg tolerance, falloff 32 deg
+    const jointScore = diffToScore(diff, 18.0 * tolMul, 32.0);
     totalScore += jointScore;
 
     if (jointScore < 60) {
@@ -130,10 +150,11 @@ export function compareFingerCurls(
   keys.forEach((k) => {
     const diff = userCurls[k] - refCurls[k];
     const absDiff = Math.abs(diff);
-    const curlScore = diffToScore(absDiff, 0.10 * tolMul, 0.24);
+    // Curl Margin of Error: 0.15 tolerance, falloff 0.28
+    const curlScore = diffToScore(absDiff, 0.15 * tolMul, 0.28);
     totalScore += curlScore;
 
-    if (curlScore < 65) {
+    if (curlScore < 60) {
       const fingerName = FINGER_NAMES_THAI[k] || k;
       const isTooCurled = diff > 0;
       const message = isTooCurled
@@ -166,7 +187,8 @@ export function compareHandShape(
 ): { score: number; feedback: ScoreFeedback[] } {
   const feedback: ScoreFeedback[] = [];
   const spreadDiff = Math.abs(refHand.handSpread - userHand.handSpread);
-  const spreadScore = diffToScore(spreadDiff, 0.10 * tolMul, 0.20);
+  // Spread Margin of Error: 0.15 tolerance, falloff 0.25
+  const spreadScore = diffToScore(spreadDiff, 0.15 * tolMul, 0.25);
 
   if (spreadScore < 60) {
     const message =
@@ -200,19 +222,20 @@ export function comparePalmOrientation(
   const feedback: ScoreFeedback[] = [];
 
   const normalAngle = vectorAngleDiff(refHand.palmNormal, userHand.palmNormal);
-  const normalScore = diffToScore(normalAngle, 15.0 * tolMul, 30.0);
+  // Orientation Margin of Error: 20 deg tolerance, falloff 35 deg
+  const normalScore = diffToScore(normalAngle, 20.0 * tolMul, 35.0);
 
   const facingAngle = vectorAngleDiff(
     refHand.handFacingVector,
     userHand.handFacingVector
   );
-  const facingScore = diffToScore(facingAngle, 15.0 * tolMul, 30.0);
+  const facingScore = diffToScore(facingAngle, 20.0 * tolMul, 35.0);
 
   // Minimum penalty weighting to avoid masking completely wrong orientation
   const combinedScore = Math.min(normalScore, facingScore) * 0.6 + ((normalScore + facingScore) / 2) * 0.4;
 
-  if (combinedScore < 65) {
-    const isMajor = combinedScore < 35;
+  if (combinedScore < 60) {
+    const isMajor = combinedScore < 30;
     feedback.push({
       category: "palmOrientation",
       message: `ทิศทางการหันของฝ่ามือหรือมุมชี้ของมือเบี่ยงเบนจากตัวอย่าง (${Math.round(Math.max(normalAngle, facingAngle))}°)`,
@@ -246,16 +269,17 @@ export function compareHandPosition(
     refHand.posRelShoulderCenter,
     userHand.posRelShoulderCenter
   );
-  const posScore = diffToScore(posDiff, 0.08 * tolMul, 0.22);
+  // Hand Position Margin of Error: 0.12 tolerance for camera distance/user variance, falloff 0.26
+  const posScore = diffToScore(posDiff, 0.12 * tolMul, 0.26);
 
   const yDiff = userHand.posRelShoulderCenter.y - refHand.posRelShoulderCenter.y;
   const xDiff = userHand.posRelShoulderCenter.x - refHand.posRelShoulderCenter.x;
 
-  if (posScore < 65) {
+  if (posScore < 60) {
     let positionNote = "ตำแหน่งมือเบี่ยงเบนจากตัวอย่าง";
-    if (yDiff < -0.2) {
+    if (yDiff < -0.22) {
       positionNote = "ตำแหน่งมืออยู่สูงกว่าตัวอย่าง";
-    } else if (yDiff > 0.2) {
+    } else if (yDiff > 0.22) {
       positionNote = "ตำแหน่งมืออยู่ต่ำกว่าตัวอย่าง";
     } else if (Math.abs(xDiff) > 0.25) {
       positionNote = "ระยะมือในแนวนอนห่างจากกึ่งกลางลำตัวต่างจากตัวอย่าง";
@@ -311,19 +335,19 @@ export function compareTwoHandRelationship(
   }
 
   const wristDistDiff = Math.abs(refTwoHand.wristDistance - userTwoHand.wristDistance);
-  const wristDistScore = diffToScore(wristDistDiff, 0.08 * tolMul, 0.22);
+  const wristDistScore = diffToScore(wristDistDiff, 0.12 * tolMul, 0.26);
 
   const heightDiffDelta = Math.abs((refTwoHand.heightDifference ?? 0) - (userTwoHand.heightDifference ?? 0));
-  const heightScore = diffToScore(heightDiffDelta, 0.08 * tolMul, 0.20);
+  const heightScore = diffToScore(heightDiffDelta, 0.12 * tolMul, 0.24);
 
   const symDelta = Math.abs((refTwoHand.symmetryScore ?? 1.0) - (userTwoHand.symmetryScore ?? 1.0));
-  const symScore = diffToScore(symDelta, 0.08 * tolMul, 0.20);
+  const symScore = diffToScore(symDelta, 0.12 * tolMul, 0.24);
 
   const combinedScore = wristDistScore * 0.45 + heightScore * 0.3 + symScore * 0.25;
 
-  if (combinedScore < 65) {
-    const isMajor = combinedScore < 40;
-    if (wristDistDiff > 0.2) {
+  if (combinedScore < 60) {
+    const isMajor = combinedScore < 30;
+    if (wristDistDiff > 0.22) {
       feedback.push({
         category: "twoHand",
         message: "ระยะห่างระหว่างมือทั้งสองข้างไม่ตรงกับตัวอย่าง (มือชิดหรือห่างเกินไป)",
@@ -331,7 +355,7 @@ export function compareTwoHandRelationship(
         score: Math.round(wristDistScore),
         relatedFeature: "wristDistance",
       });
-    } else if (symScore < 60) {
+    } else if (symScore < 55) {
       feedback.push({
         category: "twoHand",
         message: "ตำแหน่งมือซ้ายและมือขวาไม่สมมาตรตามตัวอย่าง",
@@ -367,7 +391,7 @@ export function compareBodyContext(
   }
 
   const tiltDiff = Math.abs(refHead.headTiltAngle - userHead.headTiltAngle);
-  const tiltScore = diffToScore(tiltDiff, 15.0 * tolMul, 30.0);
+  const tiltScore = diffToScore(tiltDiff, 20.0 * tolMul, 35.0);
 
   if (tiltScore < 60) {
     feedback.push({
@@ -809,7 +833,7 @@ export function scoreGesture(
     },
   };
 
-  // Prioritize, de-duplicate and limit feedback messages
+  // Prioritize, de-duplicate and limit feedback messages (Max 3-4 actionable tips)
   const seenMessages = new Set<string>();
   const prioritizedFeedback: ScoreFeedback[] = [];
 
@@ -826,7 +850,7 @@ export function scoreGesture(
       return a.score - b.score;
     })
     .forEach((item) => {
-      if (!seenMessages.has(item.message) && prioritizedFeedback.length < 6) {
+      if (!seenMessages.has(item.message) && prioritizedFeedback.length < 4) {
         seenMessages.add(item.message);
         prioritizedFeedback.push(item);
       }
@@ -838,15 +862,16 @@ export function scoreGesture(
   ).length;
   const userHasBothHands = bothHandsCount >= Math.ceil(user.frames.length * 0.4);
 
-  let finalOverallScore = Math.round(sumOverallScore / numEvaluated);
+  const rawMeanScore = sumOverallScore / numEvaluated;
+  let finalOverallScore = Math.round(applyForgivingScoreCurve(rawMeanScore));
   let finalConfidence = Number((sumConfidence / numEvaluated).toFixed(2));
 
   // Critical Error Clamping 1: Wrong Palm Orientation (< 40)
   if (finalBreakdown.palmOrientation.score < 40) {
-    finalOverallScore = Math.min(finalOverallScore, 50);
+    finalOverallScore = Math.min(finalOverallScore, 48);
     prioritizedFeedback.unshift({
       category: "palmOrientation",
-      message: "ทิศทางการหันของฝ่ามือหรือมุมชี้ของมือผิดทิศทางอย่างมาก (คะแนนถูกจำกัดไม่เกิน 50 คะแนน)",
+      message: "ทิศทางการหันของฝ่ามือหรือมุมชี้ของมือผิดทิศทางอย่างมาก (คะแนนถูกจำกัดไม่เกิน 48 คะแนน)",
       severity: "error",
       score: finalBreakdown.palmOrientation.score,
     });
@@ -855,7 +880,7 @@ export function scoreGesture(
   // Critical Error Clamping 2: Missing Required Hand
   if (options.requiresBothHands && !userHasBothHands) {
     // Missing required second hand reduces score and confidence
-    finalOverallScore = Math.min(38, Math.round(finalOverallScore * 0.70));
+    finalOverallScore = Math.min(35, Math.round(finalOverallScore * 0.70));
     finalConfidence = Math.min(finalConfidence, 0.40);
   }
 

@@ -166,17 +166,17 @@ export function computeLiveFeedback(
   const rawScore = Math.round(comparison.score);
   const confidence = Number(comparison.confidence.toFixed(2));
 
-  // Determine faulty components where score is low
+  // Determine faulty components where score is low (Threshold 65 for actionable feedback)
   const faultyComponents: string[] = [];
   const bd = comparison.breakdown;
 
-  if (bd.palmOrientation.score < 60) faultyComponents.push("palmOrientation");
-  if (bd.handPosition.score < 60) faultyComponents.push("handPosition");
-  if (bd.handShape.score < 60) faultyComponents.push("handShape");
-  if (bd.fingerCurl.score < 60) faultyComponents.push("fingerCurl");
-  if (bd.fingerAngle.score < 60) faultyComponents.push("fingerAngle");
-  if (bd.twoHand.score < 60) faultyComponents.push("twoHand");
-  if (bd.bodyContext.score < 60) faultyComponents.push("bodyContext");
+  if (bd.palmOrientation.score < 65) faultyComponents.push("palmOrientation");
+  if (bd.handPosition.score < 65) faultyComponents.push("handPosition");
+  if (bd.handShape.score < 65) faultyComponents.push("handShape");
+  if (bd.fingerCurl.score < 65) faultyComponents.push("fingerCurl");
+  if (bd.fingerAngle.score < 65) faultyComponents.push("fingerAngle");
+  if (bd.twoHand.score < 65) faultyComponents.push("twoHand");
+  if (bd.bodyContext.score < 65) faultyComponents.push("bodyContext");
 
   // Sort feedback by strict priority hierarchy
   const sortedFeedback = [...comparison.feedback].sort((a, b) => {

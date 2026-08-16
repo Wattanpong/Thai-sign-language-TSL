@@ -60,7 +60,7 @@ function calculatePositionDistance(ref: SingleHandFeatures, user: SingleHandFeat
     return 0.0;
   }
   const posDiff = dist3D(ref.posRelShoulderCenter, user.posRelShoulderCenter);
-  return Math.min(1.0, posDiff / 1.5);
+  return Math.min(1.0, posDiff / 2.2);
 }
 
 /**
@@ -380,9 +380,9 @@ export function computeDTW(
   const userDuration = user.durationMs || 1000;
   const durationRatio = userDuration / Math.max(1, refDuration);
 
-  if (durationRatio < 0.6) {
+  if (durationRatio < 0.5) {
     temporalFeedback.push("ทำท่าทางเร็วกว่าปกติ ควรชะลอจังหวะการเคลื่อนไหวให้ตรงกับตัวอย่าง");
-  } else if (durationRatio > 1.6) {
+  } else if (durationRatio > 1.8) {
     temporalFeedback.push("ทำท่าทางช้ากว่าปกติ ควรเพิ่มความคล่องแคล่วในการทำท่าทาง");
   }
 
@@ -393,13 +393,13 @@ export function computeDTW(
       startLag++;
     }
   }
-  if (startLag >= 3) {
+  if (startLag >= 4) {
     temporalFeedback.push("เริ่มต้นเคลื่อนไหวช้ากว่าจังหวะของตัวอย่าง");
   }
 
   // 10. Confidence Estimation
   const lengthRatio = Math.min(N, M) / Math.max(N, M);
-  const distConfidence = Math.max(0.0, 1.0 - normalizedDistance * 1.6);
+  const distConfidence = Math.max(0.0, 1.0 - normalizedDistance * 1.3);
   const confidence = Number((coverage * 0.4 + distConfidence * 0.4 + lengthRatio * 0.2).toFixed(2));
 
   return {
