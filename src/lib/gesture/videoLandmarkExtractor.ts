@@ -295,27 +295,52 @@ export async function extractGestureFromVideo(
       processedFrames = rawFrames.map((f) => filter.filterFrame(f));
     }
 
-    // 5. Motion Boundary Trimming
+    // 5. Motion Boundary & Active Hand Presence Trimming
     let finalFrames = processedFrames;
     if (autoTrimLeadInLeadOut && processedFrames.length >= 10) {
       reportProgress("trimming", totalFrames, totalFrames, durationSec, durationSec, "กำลังตัดช่วงเตรียมตัวหัว-ท้ายวิดีโอ (Motion Boundary Trimming)...");
+
+      // 5.1 Find first and last frames with hand presence
+      let firstHandIdx = -1;
+      let lastHandIdx = -1;
+      for (let i = 0; i < processedFrames.length; i++) {
+        if (processedFrames[i].hands && processedFrames[i].hands.length > 0) {
+          if (firstHandIdx === -1) firstHandIdx = i;
+          lastHandIdx = i;
+        }
+      }
+
+      // If hand presence is concentrated in an active window, narrow candidate frames
+      let candidateFrames = processedFrames;
+      if (firstHandIdx !== -1 && lastHandIdx !== -1 && lastHandIdx - firstHandIdx + 1 >= 6) {
+        // Keep 1-2 frames padding around active hand window
+        const padStart = Math.max(0, firstHandIdx - 2);
+        const padEnd = Math.min(processedFrames.length - 1, lastHandIdx + 2);
+        candidateFrames = processedFrames.slice(padStart, padEnd + 1);
+      }
+
+      // 5.2 Dynamic motion boundary trimming on active candidate frames
       const dummyGesture: ReferenceGesture = {
         id: `temp_${lesson.id}`,
         lessonId: lesson.id,
         word: lesson.word,
         createdAt: new Date().toISOString(),
         durationMs: Math.round(durationSec * 1000),
-        frameCount: processedFrames.length,
-        frames: processedFrames,
+        frameCount: candidateFrames.length,
+        frames: candidateFrames,
       };
 
       const featureSeq = extractGestureSequenceFeatures(dummyGesture);
       const boundary = detectMotionBoundaries(featureSeq, {
         gestureType: lesson.gestureType || "dynamic",
+        minRetainedRatio: 0.30,
+        minRequiredFrames: 8,
       });
 
-      if (boundary.isTrimmed && boundary.trimmedFrameCount >= 8) {
-        finalFrames = processedFrames.slice(boundary.startIndex, boundary.endIndex + 1);
+      if (boundary.isTrimmed && boundary.trimmedFrameCount >= 6) {
+        finalFrames = candidateFrames.slice(boundary.startIndex, boundary.endIndex + 1);
+      } else {
+        finalFrames = candidateFrames;
       }
     }
 
@@ -323,7 +348,7 @@ export async function extractGestureFromVideo(
     const lastTime = finalFrames[finalFrames.length - 1]?.timestampMs ?? firstTime;
     const durationMs = Math.max(100, lastTime - firstTime);
 
-    // 6. Build Final ReferenceGesture Data Structure
+    // 6. Build Final ReferenceGesture Data Structure (Active Trimmed Frames)
     const sourceFilename = typeof videoSource === "object" && "name" in videoSource ? (videoSource as File).name : "video";
     const finalGesture: ReferenceGesture = {
       id: `ref_${lesson.id}_video_${Date.now()}`,
@@ -333,11 +358,17 @@ export async function extractGestureFromVideo(
       durationMs,
       frameCount: finalFrames.length,
       frames: finalFrames,
-      notes: `Extracted from video: ${sourceFilename} (${durationSec.toFixed(1)}s, ${finalFrames.length} frames)`,
+      notes: `Extracted from video: ${sourceFilename} (${durationSec.toFixed(1)}s raw, ${finalFrames.length} active frames)`,
     };
 
-    // 7. Evaluate Quality
-    const quality = evaluateReferenceQuality(finalGesture);
+    // 7. Evaluate Quality on Trimmed Active Phase
+    const maxHands = Math.max(0, ...finalFrames.map((f) => f.hands?.length || 0));
+    const requiresBothHands = maxHands >= 2;
+    const quality = evaluateReferenceQuality(finalGesture, {
+      requiresBothHands,
+      minFrames: Math.min(10, finalFrames.length),
+      minDurationMs: 400,
+    });
 
     reportProgress("completed", totalFrames, totalFrames, durationSec, durationSec, "ประมวลผลวิดีโอเสร็จสมบูรณ์");
 

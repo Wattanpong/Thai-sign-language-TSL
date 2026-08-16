@@ -169,4 +169,63 @@ test("Video Landmark Extractor Pipeline & Processing Test Suite", async (t) => {
     assert.equal(extractionResult.rawFrameCount, 30);
     assert.equal(extractionResult.gesture.lessonId, "hello");
   });
+
+  await t.test("5. Video with lead-in/lead-out rest poses trims to active window and scores 'good'", () => {
+    // 8 lead-in frames with no hands (person standing still)
+    const rawFrames: ReferenceFrame[] = [];
+    for (let i = 0; i < 8; i++) {
+      rawFrames.push({
+        timestampMs: i * 40,
+        hands: [],
+        pose: createMockPoseLandmarks(),
+      });
+    }
+
+    // 16 active frames with single-hand sign
+    for (let i = 8; i < 24; i++) {
+      rawFrames.push({
+        timestampMs: i * 40,
+        hands: [
+          {
+            handedness: "Right",
+            landmarks: createMockHandLandmarks((i - 8) * 0.01, 0),
+          },
+        ],
+        pose: createMockPoseLandmarks(),
+      });
+    }
+
+    // 8 lead-out frames with no hands
+    for (let i = 24; i < 32; i++) {
+      rawFrames.push({
+        timestampMs: i * 40,
+        hands: [],
+        pose: createMockPoseLandmarks(),
+      });
+    }
+
+    // Trimmed active sequence
+    const activeFrames = rawFrames.slice(8, 24);
+    const trimmedGesture: ReferenceGesture = {
+      id: "ref_single_hand_trimmed",
+      lessonId: "number-1",
+      word: "หนึ่ง",
+      createdAt: new Date().toISOString(),
+      durationMs: 16 * 40,
+      frameCount: activeFrames.length,
+      frames: activeFrames,
+      notes: "Trimmed active phase",
+    };
+
+    const quality = evaluateReferenceQuality(trimmedGesture, {
+      requiresBothHands: false,
+      minFrames: 10,
+      minDurationMs: 400,
+    });
+
+    assert.equal(quality.level, "good");
+    assert.equal(quality.details.handCoveragePercent, 100);
+    assert.ok(quality.scorePercent >= 85);
+    assert.ok(!quality.details.issues.some((m) => m.includes("2 มือ")));
+  });
 });

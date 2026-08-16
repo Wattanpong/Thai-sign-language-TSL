@@ -621,38 +621,96 @@ export function PracticeSessionManager({
     </div>
   );
 
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_380px] gap-6 items-start">
-      {/* LEFT / MAIN COLUMN (Dominant Camera & Practice Area, min-w 620px on desktop) */}
-      <div className="space-y-4 sm:space-y-5 min-w-0 lg:min-w-[620px]">
-        {/* 1. Practice Header Banner */}
+  const renderLessonGuideCard = () => (
+    <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E2E8F0] shadow-xs space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-bold text-[#0F172A]">คำศัพท์ที่เลือก</span>
+          <Badge variant="primary" className="font-bold">
+            {selectedLesson.word}
+          </Badge>
+        </div>
+        <Badge variant="tag">
+          {selectedLesson.difficulty === "beginner" && "ระดับ: ง่าย"}
+          {selectedLesson.difficulty === "intermediate" && "ระดับ: ปานกลาง"}
+          {selectedLesson.difficulty === "advanced" && "ระดับ: ขั้นสูง"}
+          {!selectedLesson.difficulty && "ระดับ: ทั่วไป"}
+        </Badge>
+      </div>
 
-        <div className="bg-white rounded-2xl p-5 sm:p-6 border border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-          <div className="space-y-1">
+      <div className="p-3.5 bg-[#F0F9FF] rounded-xl border border-[#BAE6FD] space-y-1.5">
+        <div className="flex items-center gap-1.5 text-xs font-bold text-[#0369A1]">
+          <span>💡 วิธีทำท่าภาษามือ:</span>
+        </div>
+        <p className="text-xs sm:text-sm text-[#0F172A] leading-relaxed">
+          {selectedLesson.description || "ทำท่าทางตามตัวอย่างให้ชัดเจนและมั่นคง"}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+          <span className="text-[#64748B] block">ประเภทท่าทาง</span>
+          <span className="font-semibold text-[#0F172A]">
+            {selectedLesson.gestureType === "dynamic" ? "🔄 ท่าต่อเนื่อง (Dynamic)" : "🖐️ ท่าคงที่ (Static Hold)"}
+          </span>
+        </div>
+
+        <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+          <span className="text-[#64748B] block">ต้นแบบในระบบ</span>
+          <span className="font-semibold text-[#0F172A]">
+            {referenceCount > 0 ? `✓ มี ${referenceCount} ตัวอย่าง` : "⚡ ใช้เกณฑ์มาตรฐาน"}
+          </span>
+        </div>
+      </div>
+
+      <div className="space-y-1.5 pt-1 border-t border-slate-100 text-xs text-[#64748B]">
+        <span className="font-semibold text-[#334155] block">คำแนะนำขณะฝึกฝน:</span>
+        <ul className="space-y-1 pl-1">
+          <li className="flex items-center gap-1.5">
+            <span className="text-emerald-500 font-bold">✓</span>
+            <span>จัดระยะห่างให้เห็นท่อนแขนและมือชัดเจนในมุมกล้อง</span>
+          </li>
+          <li className="flex items-center gap-1.5">
+            <span className="text-emerald-500 font-bold">✓</span>
+            <span>หันฝ่ามือและตำแหน่งนิ้วให้ตรงกับคำอธิบาย</span>
+          </li>
+          <li className="flex items-center gap-1.5">
+            <span className="text-emerald-500 font-bold">✓</span>
+            <span>เมื่อทำท่าเสร็จแล้ว ให้กดปุ่ม &quot;หยุดและตรวจคะแนน&quot;</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
+      {/* LEFT / MAIN COLUMN (Compact Camera & Interactive Practice Area) */}
+      <div className="lg:col-span-7 xl:col-span-7 space-y-4 min-w-0">
+        {/* 1. Practice Header Banner */}
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="space-y-0.5">
             <div className="flex items-center gap-2">
               <Badge variant="default">ฝึกฝนด้วย AI</Badge>
-              <h1 className="text-lg sm:text-xl font-bold text-[#0F172A]">
+              <h1 className="text-base sm:text-lg font-bold text-[#0F172A]">
                 ห้องฝึกภาษามือกับ AI
               </h1>
             </div>
-            <p className="text-xs sm:text-sm text-[#64748B]">
+            <p className="text-xs text-[#64748B]">
               ฝึกทำท่าทางผ่านกล้อง ระบบจะเปรียบเทียบกับต้นแบบและให้คะแนนทันที
             </p>
           </div>
 
           <Link
             href="/lessons"
-            className="text-xs font-semibold text-[#0284C7] hover:text-[#0369A1] inline-flex items-center gap-1 shrink-0 p-2 rounded-xl hover:bg-sky-50 transition-colors"
+            className="text-xs font-semibold text-[#0284C7] hover:text-[#0369A1] inline-flex items-center gap-1 shrink-0 px-2.5 py-1.5 rounded-xl hover:bg-sky-50 transition-colors"
           >
             <span>← คลังบทเรียน</span>
           </Link>
         </div>
 
-        {/* 2. Collapsible 3-Step Guide */}
-        <PracticeGuide />
-
-        {/* 3. Step Indicator Bar */}
-        <div className="flex items-center justify-between px-3.5 py-2 sm:py-2.5 bg-[#F0F9FF] rounded-xl border border-[#BAE6FD] text-xs font-semibold text-[#0369A1]">
+        {/* 2. Step Indicator Bar */}
+        <div className="flex items-center justify-between px-3.5 py-2 bg-[#F0F9FF] rounded-xl border border-[#BAE6FD] text-xs font-semibold text-[#0369A1]">
           <div className="flex items-center gap-2">
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#0EA5E9] text-white font-bold text-[11px]">
               {currentStepNumber}
@@ -667,477 +725,478 @@ export function PracticeSessionManager({
         </div>
 
         {/* Word Selector on Mobile/Tablet (< lg) */}
-        <div className="block lg:hidden">
+        <div className="block lg:hidden space-y-4">
           {renderWordSelectorCard()}
+          {renderLessonGuideCard()}
         </div>
 
-
-      {/* 5. Top Camera Controls & Status Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span
-              className={`h-3 w-3 rounded-full ${
-                cameraState === "ready"
-                  ? "bg-emerald-500 animate-pulse"
-                  : cameraState === "requesting"
-                  ? "bg-amber-400 animate-ping"
-                  : cameraState === "error"
-                  ? "bg-red-500"
-                  : "bg-slate-300"
-              }`}
-            />
-            <span className="text-sm font-semibold text-[#0F172A]">
-              สถานะกล้อง:
-            </span>
-          </div>
-
-          <Badge
-            variant={
-              cameraState === "ready"
-                ? "success"
-                : cameraState === "requesting"
-                ? "warning"
-                : cameraState === "error"
-                ? "outline"
-                : "default"
-            }
-          >
-            {cameraState === "ready" && "Camera Ready (ตรวจจับโครงสร้างมือ)"}
-            {cameraState === "requesting" && "กำลังเปิดกล้อง..."}
-            {cameraState === "error" && "Camera Error"}
-            {cameraState === "off" && "Camera Off"}
-          </Badge>
-
-          {sessionState === "practicing" && (
-            <Badge variant="warning" className="animate-pulse">
-              🔴 กำลังบันทึก: {liveDurationSec}s ({liveFrameCount} เฟรม)
-            </Badge>
-          )}
-
-          {sessionState === "analyzing" && (
-            <Badge variant="default" className="animate-pulse">
-              ⚡ กำลังวิเคราะห์ผลคะแนน...
-            </Badge>
-          )}
-        </div>
-
-        {/* Action Controls */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <button
-            type="button"
-            onClick={() => setIsMirrored((prev) => !prev)}
-            title="สลับภาพให้เหมือนกระจกเงา ทำท่าทางให้ตรงกับที่เห็นในจอ"
-            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-[#CBD5E1] bg-white text-[#475569] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
-          >
-            {isMirrored ? "โหมดกระจก: เปิด" : "โหมดกระจก: ปิด"}
-          </button>
-
-          {isDebugMode && (
-            <button
-              type="button"
-              onClick={() => setShowDebug((prev) => !prev)}
-              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-[#CBD5E1] bg-white text-[#475569] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
-            >
-              {showDebug ? "ซ่อน Debug" : "แสดง Debug"}
-            </button>
-          )}
-
-          {cameraState === "ready" || cameraState === "requesting" ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={stopCamera}
-              className="text-red-600 border-red-200 hover:bg-red-50"
-            >
-              ปิดกล้อง
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              variant="amber"
-              onClick={startCamera}
-              className="shadow-xs font-semibold"
-            >
-              เปิดกล้อง
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Loading Step Progress Indicator */}
-      {cameraState === "requesting" && initStepMessage && (
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs sm:text-sm text-amber-900 flex items-center gap-3">
-          <div className="w-4 h-4 border-2 border-amber-600 border-t-transparent rounded-full animate-spin shrink-0" />
-          <span className="font-medium">{initStepMessage}</span>
-        </div>
-      )}
-
-      {/* Camera / Practice Errors */}
-      {(cameraError || practiceError) && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-xs sm:text-sm text-red-800 flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
-          <div className="flex items-center gap-2">
-            <span>⚠️ {cameraError || practiceError}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                setCameraError(null);
-                resetSession();
-              }}
-              className="text-red-700 border-red-300 hover:bg-red-100 font-semibold text-xs"
-            >
-              ↻ รีเซ็ตและลองใหม่อีกครั้ง (Reset Session)
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Main Viewport & Video / Canvas Area */}
-      <Card className="overflow-hidden p-0 border-[#E2E8F0]">
-        <div
-          className={`relative w-full bg-slate-950 rounded-2xl overflow-hidden flex items-center justify-center transition-all duration-300 ${
-            cameraState === "ready" || cameraState === "requesting"
-              ? "aspect-video"
-              : "h-[220px] sm:h-[260px]"
-          }`}
-        >
-          <video
-            ref={videoRef}
-            playsInline
-            muted
-            autoPlay
-            className={`absolute inset-0 h-full w-full object-cover ${
-              isMirrored ? "scale-x-[-1]" : ""
-            } ${cameraState === "ready" ? "opacity-100" : "opacity-0 pointer-events-none"}`}
-          />
-
-          <canvas
-            ref={canvasRef}
-            className="absolute inset-0 h-full w-full pointer-events-none z-10"
-          />
-
-          {/* Real-time Live Practice HUD (Overlay inside viewport) */}
-          {sessionState === "practicing" && liveFeedback && (
-            <div className="absolute top-3 inset-x-3 z-20 flex flex-col gap-2 pointer-events-none animate-fadeIn">
-              <div className="flex items-center justify-between gap-2 p-3 rounded-xl bg-slate-900/80 backdrop-blur-md border border-white/10 shadow-lg text-white">
-                {/* Live Score Pill */}
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`px-3 py-1 rounded-lg text-xs font-black tracking-wider flex items-center gap-1.5 shadow-xs ${
-                      liveFeedback.liveScore >= 85
-                        ? "bg-emerald-500 text-white"
-                        : liveFeedback.liveScore >= 60
-                        ? "bg-amber-500 text-white"
-                        : "bg-rose-500 text-white"
-                    }`}
-                  >
-                    <span>LIVE</span>
-                    <span>{liveFeedback.liveScore}%</span>
-                  </div>
-
-                  {/* Primary Feedback Status */}
-                  <span className="text-xs sm:text-sm font-semibold truncate max-w-xs sm:max-w-md">
-                    {liveFeedback.severity === "success" && "🟢 "}
-                    {liveFeedback.severity === "warning" && "🟡 "}
-                    {liveFeedback.severity === "error" && "🔴 "}
-                    {liveFeedback.primaryFeedback}
-                  </span>
-                </div>
-
-                {/* Gesture Progress if dynamic */}
-                {selectedLesson.gestureType === "dynamic" && (
-                  <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-300">
-                    <span>จังหวะท่า:</span>
-                    <div className="w-16 h-2 bg-slate-700 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-[#0EA5E9] transition-all duration-100"
-                        style={{
-                          width: `${Math.round(liveFeedback.gestureProgress * 100)}%`,
-                        }}
-                      />
-                    </div>
-                    <span>{Math.round(liveFeedback.gestureProgress * 100)}%</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Floating Stop & Evaluate HUD Button (Bottom Center of Video Viewport) */}
-          {sessionState === "practicing" && (
-            <div className="absolute bottom-4 inset-x-0 z-20 flex justify-center pointer-events-none px-4 animate-fadeIn">
-              <button
-                type="button"
-                onClick={stopAndAnalyze}
-                aria-label="หยุดบันทึกและตรวจคะแนน"
-                className="pointer-events-auto min-h-[48px] px-7 sm:px-8 py-3 rounded-2xl bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-sm sm:text-base shadow-2xl flex items-center gap-2.5 transition-all transform hover:scale-105 active:scale-95 cursor-pointer border-2 border-white/30 backdrop-blur-xs animate-pulse"
-              >
-                <span className="text-lg leading-none">⏹</span>
-                <span>หยุดและตรวจคะแนน (Stop & Evaluate)</span>
-              </button>
-            </div>
-          )}
-
-          {/* Analyzing Processing Overlay inside Video Viewport */}
-          {sessionState === "analyzing" && (
-            <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-slate-950/75 backdrop-blur-xs text-white p-6 space-y-3 animate-fadeIn">
-              <div className="w-10 h-10 border-3 border-[#0EA5E9] border-t-transparent rounded-full animate-spin" />
-              <div className="text-center space-y-1">
-                <h4 className="text-base font-bold text-white">กำลังวิเคราะห์ผลคะแนน AI...</h4>
-                <p className="text-xs text-slate-300">ระบบกำลังคำนวณความแม่นยำด้วย DTW & Scoring Engine</p>
-              </div>
-            </div>
-          )}
-
-          {/* Standby screen when camera is off */}
-          {cameraState === "off" && (
-            <div className="flex flex-col items-center justify-center text-center p-6 text-slate-400 space-y-3">
-              <div className="h-12 w-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-[#0EA5E9]">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-sm sm:text-base font-semibold text-slate-200">
-                  กล้องยังไม่ได้เปิดใช้งาน
-                </h3>
-                <p className="text-xs text-slate-400 max-w-sm">
-                  กดปุ่ม &quot;เปิดกล้อง&quot; ด้านบน เพื่อเริ่มการตรวจจับท่าทางภาษามือแบบ Real-time
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-      </Card>
-
-      {/* Live Component Status Card during practice */}
-      {sessionState === "practicing" && liveFeedback && (
-        <div className="p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs space-y-3 animate-fadeIn">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+        {/* 3. Top Camera Controls & Status Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs">
+          <div className="flex items-center gap-2.5">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-[#0F172A]">
-                AI Real-Time Feedback
+              <span
+                className={`h-2.5 w-2.5 rounded-full ${
+                  cameraState === "ready"
+                    ? "bg-emerald-500 animate-pulse"
+                    : cameraState === "requesting"
+                    ? "bg-amber-400 animate-ping"
+                    : cameraState === "error"
+                    ? "bg-red-500"
+                    : "bg-slate-300"
+                }`}
+              />
+              <span className="text-xs sm:text-sm font-semibold text-[#0F172A]">
+                สถานะกล้อง:
               </span>
-              <Badge
-                variant={
-                  liveFeedback.severity === "success"
-                    ? "success"
-                    : liveFeedback.severity === "warning"
-                    ? "warning"
-                    : "outline"
-                }
-              >
-                {liveFeedback.severity === "success" && "ท่าทางถูกต้อง"}
-                {liveFeedback.severity === "warning" && "ควรปรับปรุงเล็กน้อย"}
-                {liveFeedback.severity === "error" && "ท่าทางยังไม่ถูกต้อง"}
-              </Badge>
             </div>
 
-            {liveFeedback.correctionDirection && (
-              <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
-                💡 คำแนะนำ: {liveFeedback.correctionDirection}
-              </span>
-            )}
-          </div>
-
-          {/* Secondary feedback list if any */}
-          {liveFeedback.secondaryFeedback.length > 0 && (
-            <div className="flex flex-wrap gap-2 text-xs text-[#475569]">
-              {liveFeedback.secondaryFeedback.map((msg, idx) => (
-                <span
-                  key={idx}
-                  className="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200"
-                >
-                  • {msg}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Real-time Component Score Breakdown Bars */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-2 border-t border-slate-100 text-xs">
-            <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-              <div className="flex justify-between text-[#64748B]">
-                <span>ทิศทางมือ</span>
-                <span className="font-bold text-[#0F172A]">{liveFeedback.componentScores.palmOrientation}%</span>
-              </div>
-              <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                <div
-                  className={`h-full ${
-                    liveFeedback.componentScores.palmOrientation >= 70 ? "bg-emerald-500" : "bg-rose-500"
-                  }`}
-                  style={{ width: `${liveFeedback.componentScores.palmOrientation}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-              <div className="flex justify-between text-[#64748B]">
-                <span>ตำแหน่งมือ</span>
-                <span className="font-bold text-[#0F172A]">{liveFeedback.componentScores.handPosition}%</span>
-              </div>
-              <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                <div
-                  className={`h-full ${
-                    liveFeedback.componentScores.handPosition >= 70 ? "bg-emerald-500" : "bg-rose-500"
-                  }`}
-                  style={{ width: `${liveFeedback.componentScores.handPosition}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-              <div className="flex justify-between text-[#64748B]">
-                <span>การงอนิ้ว</span>
-                <span className="font-bold text-[#0F172A]">{liveFeedback.componentScores.fingerCurl}%</span>
-              </div>
-              <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                <div
-                  className={`h-full ${
-                    liveFeedback.componentScores.fingerCurl >= 70 ? "bg-emerald-500" : "bg-rose-500"
-                  }`}
-                  style={{ width: `${liveFeedback.componentScores.fingerCurl}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-              <div className="flex justify-between text-[#64748B]">
-                <span>มุมข้อนิ้ว</span>
-                <span className="font-bold text-[#0F172A]">{liveFeedback.componentScores.fingerAngle}%</span>
-              </div>
-              <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                <div
-                  className={`h-full ${
-                    liveFeedback.componentScores.fingerAngle >= 70 ? "bg-emerald-500" : "bg-rose-500"
-                  }`}
-                  style={{ width: `${liveFeedback.componentScores.fingerAngle}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-              <div className="flex justify-between text-[#64748B]">
-                <span>รูปทรงมือ</span>
-                <span className="font-bold text-[#0F172A]">{liveFeedback.componentScores.handShape}%</span>
-              </div>
-              <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                <div
-                  className={`h-full ${
-                    liveFeedback.componentScores.handShape >= 70 ? "bg-emerald-500" : "bg-rose-500"
-                  }`}
-                  style={{ width: `${liveFeedback.componentScores.handShape}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-              <div className="flex justify-between text-[#64748B]">
-                <span>ความสัมพันธ์สองมือ</span>
-                <span className="font-bold text-[#0F172A]">{liveFeedback.componentScores.twoHand}%</span>
-              </div>
-              <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                <div
-                  className={`h-full ${
-                    liveFeedback.componentScores.twoHand >= 70 ? "bg-emerald-500" : "bg-rose-500"
-                  }`}
-                  style={{ width: `${liveFeedback.componentScores.twoHand}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 6. Interactive Practice Controls Bar */}
-      {cameraState === "ready" && (
-        <div className="p-4 sm:p-5 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            {sessionState === "idle" && (
-              <Button
-                variant="amber"
-                size="md"
-                onClick={startPractice}
-                className="font-bold shadow-xs px-6"
-              >
-                ▶ เริ่มฝึกท่า &quot;{selectedLesson.word}&quot; (Start Practice)
-              </Button>
-            )}
+            <Badge
+              variant={
+                cameraState === "ready"
+                  ? "success"
+                  : cameraState === "requesting"
+                  ? "warning"
+                  : cameraState === "error"
+                  ? "outline"
+                  : "default"
+              }
+            >
+              {cameraState === "ready" && "พร้อมตรวจจับ"}
+              {cameraState === "requesting" && "กำลังเปิดกล้อง..."}
+              {cameraState === "error" && "Camera Error"}
+              {cameraState === "off" && "Camera Off"}
+            </Badge>
 
             {sessionState === "practicing" && (
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-                <span>กำลังบันทึกท่าทาง — กดปุ่มหยุดบนหน้าจอด้านบน</span>
-              </div>
+              <Badge variant="warning" className="animate-pulse">
+                🔴 กำลังบันทึก: {liveDurationSec}s
+              </Badge>
             )}
 
             {sessionState === "analyzing" && (
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-50 border border-sky-200 text-[#0284C7] text-xs font-semibold">
-                <div className="w-3.5 h-3.5 border-2 border-[#0EA5E9] border-t-transparent rounded-full animate-spin" />
-                <span>กำลังประเมินผลคะแนน AI...</span>
-              </div>
-            )}
-
-            {sessionState === "completed" && (
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
-                <span className="text-sm">✓</span>
-                <span>ประเมินผลสำเร็จ — ดูผลคะแนนและกดเริ่มใหม่ในการ์ดด้านล่าง</span>
-              </div>
-            )}
-
-            {sessionState === "error" && (
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs font-semibold">
-                <span>⚠️ เกิดข้อผิดพลาด — กรุณากดรีเซ็ตในกล่องแจ้งเตือนด้านบน</span>
-              </div>
+              <Badge variant="default" className="animate-pulse">
+                ⚡ กำลังวิเคราะห์...
+              </Badge>
             )}
           </div>
 
-          <div className="text-xs text-[#64748B] flex items-center gap-2">
-            {sessionState === "idle" && "กดเริ่มฝึกเมื่อพร้อมทำท่าทาง"}
-            {sessionState === "practicing" && (
-              <span className="text-red-600 font-medium">
-                ทำท่าทางให้สมบูรณ์แล้วกดปุ่มสีแดงบนหน้าจอ
-              </span>
+          {/* Action Controls */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsMirrored((prev) => !prev)}
+              title="สลับภาพให้เหมือนกระจกเงา"
+              className="px-2.5 py-1 text-xs font-medium rounded-lg border border-[#CBD5E1] bg-white text-[#475569] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+            >
+              {isMirrored ? "กระจก: เปิด" : "กระจก: ปิด"}
+            </button>
+
+            {isDebugMode && (
+              <button
+                type="button"
+                onClick={() => setShowDebug((prev) => !prev)}
+                className="px-2.5 py-1 text-xs font-medium rounded-lg border border-[#CBD5E1] bg-white text-[#475569] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+              >
+                {showDebug ? "ซ่อน Debug" : "แสดง Debug"}
+              </button>
             )}
-            {sessionState === "analyzing" && "กำลังส่งต่อเข้า DTW & Scoring Pipeline..."}
-            {sessionState === "completed" && "ประเมินผลเรียบร้อยแล้ว"}
-            {sessionState === "error" && "กดรีเซ็ตด้านบนเพื่อเริ่มใหม่อีกครั้ง"}
+
+            {cameraState === "ready" || cameraState === "requesting" ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={stopCamera}
+                className="text-red-600 border-red-200 hover:bg-red-50 text-xs py-1 h-8"
+              >
+                ปิดกล้อง
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="amber"
+                onClick={startCamera}
+                className="shadow-xs font-semibold text-xs py-1 h-8"
+              >
+                เปิดกล้อง
+              </Button>
+            )}
           </div>
         </div>
-      )}
 
-      {/* Real-World Diagnostic & Telemetry Panel (STEP 7E) */}
-      {isDebugMode && showDebug && (
-        <PracticeDiagnosticPanel
-          stats={debugStats}
-          liveFrameCount={liveFrameCount}
-          liveDurationSec={liveDurationSec}
-          liveFeedback={liveFeedback}
-          evaluationResult={evaluationResult}
-          anomalyReport={anomalyReport}
-          referenceCount={referenceCount}
-          bestQualityScore={bestQualityScore}
-          matchedReference={evaluationResult?.matchedReference || referenceGesture}
-          lessonId={selectedLesson.id}
-        />
-      )}
+        {/* Loading Step Progress Indicator */}
+        {cameraState === "requesting" && initStepMessage && (
+          <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-center gap-2.5">
+            <div className="w-4 h-4 border-2 border-amber-600 border-t-transparent rounded-full animate-spin shrink-0" />
+            <span className="font-medium">{initStepMessage}</span>
+          </div>
+        )}
 
-      {/* Practice Results View (Appears on completed analysis) */}
-      {sessionState === "completed" && evaluationResult && (
-        <PracticeResultCard
-          result={evaluationResult}
-          word={selectedLesson.word}
-          onReset={resetSession}
-        />
-      )}
+        {/* Camera / Practice Errors */}
+        {(cameraError || practiceError) && (
+          <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800 flex flex-wrap items-center justify-between gap-2.5 animate-fadeIn">
+            <div className="flex items-center gap-2">
+              <span>⚠️ {cameraError || practiceError}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setCameraError(null);
+                  resetSession();
+                }}
+                className="text-red-700 border-red-300 hover:bg-red-100 font-semibold text-xs py-1 h-7"
+              >
+                ↻ รีเซ็ตลองใหม่
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* 4. Compact Main Viewport & Video / Canvas Area (Max Height constrained for balanced layout) */}
+        <Card className="overflow-hidden p-0 border-[#E2E8F0] shadow-sm rounded-2xl bg-slate-950">
+          <div
+            className={`relative w-full max-h-[360px] sm:max-h-[400px] xl:max-h-[420px] aspect-video bg-slate-950 rounded-2xl overflow-hidden flex items-center justify-center transition-all duration-300 ${
+              cameraState === "ready" || cameraState === "requesting"
+                ? "h-[280px] sm:h-[360px] lg:h-[380px]"
+                : "h-[180px] sm:h-[220px]"
+            }`}
+          >
+            <video
+              ref={videoRef}
+              playsInline
+              muted
+              autoPlay
+              className={`absolute inset-0 h-full w-full object-cover ${
+                isMirrored ? "scale-x-[-1]" : ""
+              } ${cameraState === "ready" ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+            />
+
+            <canvas
+              ref={canvasRef}
+              className="absolute inset-0 h-full w-full pointer-events-none z-10"
+            />
+
+            {/* Real-time Live Practice HUD (Clean pinned top bar inside viewport) */}
+            {sessionState === "practicing" && liveFeedback && (
+              <div className="absolute top-2.5 inset-x-2.5 sm:top-3 sm:inset-x-3 z-20 flex flex-col gap-1.5 pointer-events-none animate-fadeIn">
+                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-900/85 backdrop-blur-md border border-white/15 shadow-md text-white">
+                  {/* Live Score Pill */}
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`px-2.5 py-0.5 rounded-lg text-xs font-black tracking-wider flex items-center gap-1 shadow-xs ${
+                        liveFeedback.liveScore >= 85
+                          ? "bg-emerald-500 text-white"
+                          : liveFeedback.liveScore >= 60
+                          ? "bg-amber-500 text-white"
+                          : "bg-rose-500 text-white"
+                      }`}
+                    >
+                      <span>LIVE</span>
+                      <span>{liveFeedback.liveScore}%</span>
+                    </div>
+
+                    {/* Primary Feedback Status */}
+                    <span className="text-xs sm:text-sm font-semibold truncate max-w-[180px] sm:max-w-xs md:max-w-md">
+                      {liveFeedback.severity === "success" && "🟢 "}
+                      {liveFeedback.severity === "warning" && "🟡 "}
+                      {liveFeedback.severity === "error" && "🔴 "}
+                      {liveFeedback.primaryFeedback}
+                    </span>
+                  </div>
+
+                  {/* Gesture Progress if dynamic */}
+                  {selectedLesson.gestureType === "dynamic" && (
+                    <div className="flex items-center gap-2 text-xs font-medium text-slate-300 shrink-0">
+                      <span className="hidden sm:inline">จังหวะท่า:</span>
+                      <div className="w-14 sm:w-16 h-2 bg-slate-700 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[#0EA5E9] transition-all duration-100"
+                          style={{
+                            width: `${Math.round(liveFeedback.gestureProgress * 100)}%`,
+                          }}
+                        />
+                      </div>
+                      <span>{Math.round(liveFeedback.gestureProgress * 100)}%</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Analyzing Processing Overlay inside Video Viewport */}
+            {sessionState === "analyzing" && (
+              <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-xs text-white p-6 space-y-3 animate-fadeIn">
+                <div className="w-10 h-10 border-3 border-[#0EA5E9] border-t-transparent rounded-full animate-spin" />
+                <div className="text-center space-y-1">
+                  <h4 className="text-base font-bold text-white">กำลังวิเคราะห์ผลคะแนน AI...</h4>
+                  <p className="text-xs text-slate-300">ระบบกำลังคำนวณความแม่นยำด้วย DTW & Scoring Engine</p>
+                </div>
+              </div>
+            )}
+
+            {/* Standby screen when camera is off */}
+            {cameraState === "off" && (
+              <div className="flex flex-col items-center justify-center text-center p-6 text-slate-400 space-y-2">
+                <div className="h-11 w-11 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-[#0EA5E9]">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div className="space-y-0.5">
+                  <h3 className="text-sm font-semibold text-slate-200">
+                    กล้องยังไม่ได้เปิดใช้งาน
+                  </h3>
+                  <p className="text-xs text-slate-400 max-w-xs">
+                    กดปุ่ม &quot;เปิดกล้อง&quot; ด้านบน เพื่อเริ่มการตรวจจับท่าทางภาษามือแบบ Real-time
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </Card>
+
+        {/* 5. Practice Action Controls Bar (Prominent Outside Video Feed) */}
+        {cameraState === "ready" && (
+          <div className="p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="w-full sm:w-auto flex items-center gap-3">
+              {sessionState === "idle" && (
+                <Button
+                  variant="amber"
+                  size="lg"
+                  onClick={startPractice}
+                  className="w-full sm:w-auto font-bold shadow-xs px-8 py-3 text-sm sm:text-base rounded-xl"
+                >
+                  ▶ เริ่มฝึกท่า &quot;{selectedLesson.word}&quot; (Start Practice)
+                </Button>
+              )}
+
+              {sessionState === "practicing" && (
+                <button
+                  type="button"
+                  onClick={stopAndAnalyze}
+                  className="w-full sm:w-auto min-h-[46px] px-8 py-3 rounded-xl bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-sm sm:text-base shadow-lg flex items-center justify-center gap-2.5 transition-all transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer animate-pulse"
+                >
+                  <span className="text-lg leading-none">⏹</span>
+                  <span>หยุดและตรวจคะแนน (Stop & Evaluate)</span>
+                </button>
+              )}
+
+              {sessionState === "analyzing" && (
+                <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-50 border border-sky-200 text-[#0284C7] text-xs font-semibold">
+                  <div className="w-4 h-4 border-2 border-[#0EA5E9] border-t-transparent rounded-full animate-spin" />
+                  <span>กำลังประเมินผลคะแนน AI...</span>
+                </div>
+              )}
+
+              {sessionState === "completed" && (
+                <Button
+                  variant="amber"
+                  size="md"
+                  onClick={resetSession}
+                  className="font-bold shadow-xs px-6 py-2.5 rounded-xl"
+                >
+                  ↻ ฝึกใหม่อีกครั้ง (Practice Again)
+                </Button>
+              )}
+
+              {sessionState === "error" && (
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={resetSession}
+                  className="font-bold text-red-600 border-red-200 hover:bg-red-50 rounded-xl"
+                >
+                  ↻ ลองใหม่อีกครั้ง (Try Again)
+                </Button>
+              )}
+            </div>
+
+            <div className="text-xs text-[#64748B] flex items-center gap-2">
+              {sessionState === "idle" && "กดปุ่มเริ่มฝึกเมื่อจัดท่าพร้อมแล้ว"}
+              {sessionState === "practicing" && (
+                <span className="text-red-600 font-semibold flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                  กำลังบันทึก: {liveDurationSec}s ({liveFrameCount} เฟรม)
+                </span>
+              )}
+              {sessionState === "analyzing" && "กำลังประมวลผลความแม่นยำด้วย Scoring Engine..."}
+              {sessionState === "completed" && "ประเมินผลเรียบร้อยแล้ว"}
+              {sessionState === "error" && "กดปุ่มเพื่อเริ่มใหม่อีกครั้ง"}
+            </div>
+          </div>
+        )}
+
+        {/* 6. Live AI Component Scores & Real-Time Finger Feedback */}
+        {sessionState === "practicing" && liveFeedback && (
+          <div className="p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs space-y-3 animate-fadeIn">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-[#0F172A]">
+                  AI Real-Time Feedback
+                </span>
+                <Badge
+                  variant={
+                    liveFeedback.severity === "success"
+                      ? "success"
+                      : liveFeedback.severity === "warning"
+                      ? "warning"
+                      : "outline"
+                  }
+                >
+                  {liveFeedback.severity === "success" && "ท่าทางถูกต้อง"}
+                  {liveFeedback.severity === "warning" && "ควรปรับปรุงเล็กน้อย"}
+                  {liveFeedback.severity === "error" && "ท่าทางยังไม่ถูกต้อง"}
+                </Badge>
+              </div>
+
+              {liveFeedback.correctionDirection && (
+                <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                  💡 คำแนะนำ: {liveFeedback.correctionDirection}
+                </span>
+              )}
+            </div>
+
+            {/* Secondary feedback list if any */}
+            {liveFeedback.secondaryFeedback.length > 0 && (
+              <div className="flex flex-wrap gap-2 text-xs text-[#475569]">
+                {liveFeedback.secondaryFeedback.map((msg, idx) => (
+                  <span
+                    key={idx}
+                    className="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200"
+                  >
+                    • {msg}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Real-time Component Score Breakdown Bars */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-2 border-t border-slate-100 text-xs">
+              <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <div className="flex justify-between text-[#64748B]">
+                  <span>ทิศทางมือ</span>
+                  <span className="font-bold text-[#0F172A]">{liveFeedback.componentScores.palmOrientation}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${
+                      liveFeedback.componentScores.palmOrientation >= 70 ? "bg-emerald-500" : "bg-rose-500"
+                    }`}
+                    style={{ width: `${liveFeedback.componentScores.palmOrientation}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <div className="flex justify-between text-[#64748B]">
+                  <span>ตำแหน่งมือ</span>
+                  <span className="font-bold text-[#0F172A]">{liveFeedback.componentScores.handPosition}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${
+                      liveFeedback.componentScores.handPosition >= 70 ? "bg-emerald-500" : "bg-rose-500"
+                    }`}
+                    style={{ width: `${liveFeedback.componentScores.handPosition}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <div className="flex justify-between text-[#64748B]">
+                  <span>การงอนิ้ว</span>
+                  <span className="font-bold text-[#0F172A]">{liveFeedback.componentScores.fingerCurl}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${
+                      liveFeedback.componentScores.fingerCurl >= 70 ? "bg-emerald-500" : "bg-rose-500"
+                    }`}
+                    style={{ width: `${liveFeedback.componentScores.fingerCurl}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <div className="flex justify-between text-[#64748B]">
+                  <span>มุมข้อนิ้ว</span>
+                  <span className="font-bold text-[#0F172A]">{liveFeedback.componentScores.fingerAngle}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${
+                      liveFeedback.componentScores.fingerAngle >= 70 ? "bg-emerald-500" : "bg-rose-500"
+                    }`}
+                    style={{ width: `${liveFeedback.componentScores.fingerAngle}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <div className="flex justify-between text-[#64748B]">
+                  <span>รูปทรงมือ</span>
+                  <span className="font-bold text-[#0F172A]">{liveFeedback.componentScores.handShape}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${
+                      liveFeedback.componentScores.handShape >= 70 ? "bg-emerald-500" : "bg-rose-500"
+                    }`}
+                    style={{ width: `${liveFeedback.componentScores.handShape}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <div className="flex justify-between text-[#64748B]">
+                  <span>ความสัมพันธ์สองมือ</span>
+                  <span className="font-bold text-[#0F172A]">{liveFeedback.componentScores.twoHand}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${
+                      liveFeedback.componentScores.twoHand >= 70 ? "bg-emerald-500" : "bg-rose-500"
+                    }`}
+                    style={{ width: `${liveFeedback.componentScores.twoHand}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Real-World Diagnostic & Telemetry Panel (STEP 7E) */}
+        {isDebugMode && showDebug && (
+          <PracticeDiagnosticPanel
+            stats={debugStats}
+            liveFrameCount={liveFrameCount}
+            liveDurationSec={liveDurationSec}
+            liveFeedback={liveFeedback}
+            evaluationResult={evaluationResult}
+            anomalyReport={anomalyReport}
+            referenceCount={referenceCount}
+            bestQualityScore={bestQualityScore}
+            matchedReference={evaluationResult?.matchedReference || referenceGesture}
+            lessonId={selectedLesson.id}
+          />
+        )}
+
+        {/* Practice Results View (Appears on completed analysis) */}
+        {sessionState === "completed" && evaluationResult && (
+          <PracticeResultCard
+            result={evaluationResult}
+            word={selectedLesson.word}
+            onReset={resetSession}
+          />
+        )}
       </div>
 
-      {/* RIGHT / SIDEBAR COLUMN (Desktop Sticky Sidebar) */}
-      <div className="hidden lg:block lg:sticky lg:top-20 space-y-4 w-full">
+      {/* RIGHT / SIDEBAR COLUMN (Word Selector & Lesson Guidance) */}
+      <div className="hidden lg:block lg:sticky lg:top-20 lg:col-span-5 xl:col-span-5 space-y-4 w-full">
         {renderWordSelectorCard()}
+        {renderLessonGuideCard()}
+        <PracticeGuide />
       </div>
     </div>
   );

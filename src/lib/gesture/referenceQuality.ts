@@ -29,6 +29,7 @@ export interface QualityValidationOptions {
 
 /**
  * Evaluates the quality of a recorded Reference Gesture
+ * Supports trimmed video sequences, single-hand and two-hand gestures accurately
  */
 export function evaluateReferenceQuality(
   gesture: ReferenceGesture,
@@ -36,9 +37,9 @@ export function evaluateReferenceQuality(
 ): QualityCheckResult {
   const {
     requiresBothHands = false,
-    minDurationMs = 600,
+    minDurationMs = 500,
     maxDurationMs = 12000,
-    minFrames = 15,
+    minFrames = 12,
     maxConsecutiveMissingFrames = 8,
   } = options;
 
@@ -61,7 +62,7 @@ export function evaluateReferenceQuality(
         poseCoveragePercent: 0,
         maxConsecutiveMissingHandFrames: 0,
         issues: ["ไม่มีข้อมูลเฟรม"],
-        recommendations: ["กรุณาเปิดกล้องและเริ่มบันทึกใหม่"],
+        recommendations: ["กรุณาเปิดกล้องหรืออัปโหลดวิดีโอที่มีท่วงท่าชัดเจน"],
       },
     };
   }
@@ -83,21 +84,17 @@ export function evaluateReferenceQuality(
   let framesWithBothHands = 0;
   let framesWithPose = 0;
 
-  let currentMissingHandStreak = 0;
-  let maxConsecutiveMissingHandFrames = 0;
+  let firstHandIndex = -1;
+  let lastHandIndex = -1;
 
-  frames.forEach((frame) => {
+  frames.forEach((frame, idx) => {
     const handCount = frame.hands?.length || 0;
     const hasPose = (frame.pose?.length || 0) > 0;
 
     if (handCount > 0) {
       framesWithHand++;
-      currentMissingHandStreak = 0;
-    } else {
-      currentMissingHandStreak++;
-      if (currentMissingHandStreak > maxConsecutiveMissingHandFrames) {
-        maxConsecutiveMissingHandFrames = currentMissingHandStreak;
-      }
+      if (firstHandIndex === -1) firstHandIndex = idx;
+      lastHandIndex = idx;
     }
 
     if (handCount >= 2) {
@@ -109,11 +106,31 @@ export function evaluateReferenceQuality(
     }
   });
 
+  // Calculate missing hand streak within active window (between first hand and last hand)
+  let currentMissingHandStreak = 0;
+  let maxConsecutiveMissingHandFrames = 0;
+
+  if (firstHandIndex !== -1 && lastHandIndex !== -1) {
+    for (let i = firstHandIndex; i <= lastHandIndex; i++) {
+      const handCount = frames[i].hands?.length || 0;
+      if (handCount === 0) {
+        currentMissingHandStreak++;
+        if (currentMissingHandStreak > maxConsecutiveMissingHandFrames) {
+          maxConsecutiveMissingHandFrames = currentMissingHandStreak;
+        }
+      } else {
+        currentMissingHandStreak = 0;
+      }
+    }
+  } else {
+    maxConsecutiveMissingHandFrames = frameCount;
+  }
+
   const handCoveragePercent = Math.round((framesWithHand / frameCount) * 100);
   const bothHandsCoveragePercent = Math.round((framesWithBothHands / frameCount) * 100);
   const poseCoveragePercent = Math.round((framesWithPose / frameCount) * 100);
 
-  // 4. Check missing hand streaks
+  // 4. Check missing hand streaks inside active phase
   if (maxConsecutiveMissingHandFrames > maxConsecutiveMissingFrames) {
     issues.push(`มีช่วงที่ตรวจไม่พบมือนานต่อเนื่องเกินไป (สูงสุด ${maxConsecutiveMissingHandFrames} เฟรมติดต่อกัน)`);
   }
@@ -123,7 +140,7 @@ export function evaluateReferenceQuality(
     issues.push(`ตรวจพบมือน้อยเกินไป (พบเพียง ${handCoveragePercent}% ของเวลาทั้งหมด)`);
   }
 
-  // 6. Two-hand requirement
+  // 6. Two-hand requirement (Only checked if requiresBothHands is explicitly true)
   if (requiresBothHands && bothHandsCoveragePercent < 50) {
     issues.push(`คำนี้ต้องใช้ 2 มือ แต่ตรวจพบครบ 2 มือเพียง ${bothHandsCoveragePercent}%`);
   }
