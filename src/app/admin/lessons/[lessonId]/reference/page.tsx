@@ -10,7 +10,14 @@ interface ReferencePageProps {
 export default async function AdminLessonReferencePage({
   params,
 }: ReferencePageProps) {
-  const { lessonId } = await params;
+  const { lessonId: rawLessonId } = await params;
+  let lessonId = rawLessonId || "";
+  try {
+    lessonId = decodeURIComponent(rawLessonId);
+  } catch {
+    // fallback to raw
+  }
+
   const lesson = await getLessonById(lessonId);
 
   return (

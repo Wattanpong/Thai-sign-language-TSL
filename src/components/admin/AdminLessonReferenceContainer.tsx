@@ -22,7 +22,13 @@ export function AdminLessonReferenceContainer({
   useEffect(() => {
     async function loadLesson() {
       if (!initialLesson) {
-        const found = await getLessonById(lessonId);
+        let cleanId = lessonId;
+        try {
+          cleanId = decodeURIComponent(lessonId);
+        } catch {
+          // ignore
+        }
+        const found = await getLessonById(cleanId);
         setLesson(found);
         setLoading(false);
       }

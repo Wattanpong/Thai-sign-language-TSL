@@ -11,7 +11,14 @@ interface LessonDetailPageProps {
 export default async function LessonDetailPage({
   params,
 }: LessonDetailPageProps) {
-  const { lessonId } = await params;
+  const { lessonId: rawLessonId } = await params;
+  let lessonId = rawLessonId || "";
+  try {
+    lessonId = decodeURIComponent(rawLessonId);
+  } catch {
+    // fallback to raw
+  }
+
   const initialLesson = await getLessonById(lessonId);
   const initialCategory = initialLesson ? await getCategoryById(initialLesson.categoryId) : null;
 

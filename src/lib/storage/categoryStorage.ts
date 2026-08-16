@@ -65,14 +65,64 @@ function persistCategories(categories: Category[]): void {
 }
 
 /**
- * Generate a clean ID/slug from category name
+ * Normalizes a category ID/slug for search and comparison
+ */
+export function normalizeCategoryQueryId(id: string): string {
+  if (!id) return "";
+  try {
+    return decodeURIComponent(id).trim().toLowerCase();
+  } catch {
+    return id.trim().toLowerCase();
+  }
+}
+
+/**
+ * Matches a category against a query ID (supports raw ID, URL-encoded string, Thai string, and name match)
+ */
+export function matchCategory(category: Category, queryId: string): boolean {
+  if (!queryId || !category) return false;
+  const rawQuery = queryId.trim();
+  let decodedQuery = rawQuery;
+  try {
+    decodedQuery = decodeURIComponent(rawQuery).trim();
+  } catch {
+    // ignore
+  }
+
+  const normQuery = normalizeCategoryQueryId(queryId);
+  const normId = normalizeCategoryQueryId(category.id);
+  const normSlug = normalizeCategoryQueryId(category.slug || "");
+  const normName = normalizeCategoryQueryId(category.name);
+
+  return (
+    category.id === rawQuery ||
+    category.id === decodedQuery ||
+    category.slug === rawQuery ||
+    category.slug === decodedQuery ||
+    normId === normQuery ||
+    normSlug === normQuery ||
+    normName === normQuery ||
+    category.name.trim().toLowerCase() === rawQuery.toLowerCase() ||
+    category.name.trim().toLowerCase() === decodedQuery.toLowerCase()
+  );
+}
+
+/**
+ * Generate a clean URL-safe ID/slug from category name
  */
 export function generateCategorySlug(name: string): string {
   const trimmed = name.trim().toLowerCase();
-  const slug = trimmed
-    .replace(/[^\u0E00-\u0E7Fa-z0-9]+/g, "-")
+  const latinSlug = trimmed
+    .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-  return slug || `cat-${Date.now()}`;
+
+  if (latinSlug && latinSlug.length >= 2) {
+    return latinSlug;
+  }
+
+  const timestamp = Date.now().toString(36);
+  const randomSuffix = Math.random().toString(36).substring(2, 6);
+  return `category-${timestamp}-${randomSuffix}`;
 }
 
 /**
@@ -107,11 +157,31 @@ export async function getCategories(options?: {
 }
 
 /**
- * Retrieve a single category by its ID
+ * Retrieve a single category by its ID (handles URL-encoded strings, Thai IDs, and cloud fallback)
  */
-export async function getCategoryById(id: string): Promise<Category | null> {
-  const categories = await getCategories({ includeInactive: true });
-  const found = categories.find((cat) => cat.id === id || cat.slug === id);
+export async function getCategoryById(
+  id: string,
+  options?: { forceCloudSync?: boolean }
+): Promise<Category | null> {
+  if (!id) return null;
+
+  let categories = await getCategories({
+    includeInactive: true,
+    forceCloudSync: options?.forceCloudSync,
+  });
+
+  let found = categories.find((cat) => matchCategory(cat, id));
+
+  // If not found in local cache and Supabase is configured, force a sync from cloud once
+  if (!found && isSupabaseConfigured() && !options?.forceCloudSync) {
+    try {
+      categories = await getCategories({ includeInactive: true, forceCloudSync: true });
+      found = categories.find((cat) => matchCategory(cat, id));
+    } catch {
+      // fallback on network error
+    }
+  }
+
   return found ? { ...found } : null;
 }
 

@@ -67,14 +67,60 @@ function persistLessons(lessons: Lesson[]): void {
 }
 
 /**
- * Generate a clean ID/slug for a lesson
+ * Normalizes a lesson ID/slug for search and comparison
+ */
+export function normalizeLessonQueryId(id: string): string {
+  if (!id) return "";
+  try {
+    return decodeURIComponent(id).trim().toLowerCase();
+  } catch {
+    return id.trim().toLowerCase();
+  }
+}
+
+/**
+ * Matches a lesson against a query ID (supports raw ID, URL-encoded string, Thai string, and word match)
+ */
+export function matchLesson(lesson: Lesson, queryId: string): boolean {
+  if (!queryId || !lesson) return false;
+  const rawQuery = queryId.trim();
+  let decodedQuery = rawQuery;
+  try {
+    decodedQuery = decodeURIComponent(rawQuery).trim();
+  } catch {
+    // ignore
+  }
+
+  const normQuery = normalizeLessonQueryId(queryId);
+  const normId = normalizeLessonQueryId(lesson.id);
+  const normWord = normalizeLessonQueryId(lesson.word);
+
+  return (
+    lesson.id === rawQuery ||
+    lesson.id === decodedQuery ||
+    normId === normQuery ||
+    normWord === normQuery ||
+    lesson.word.trim().toLowerCase() === rawQuery.toLowerCase() ||
+    lesson.word.trim().toLowerCase() === decodedQuery.toLowerCase()
+  );
+}
+
+/**
+ * Generate a clean URL-safe ID/slug for a lesson
  */
 export function generateLessonSlug(word: string): string {
   const trimmed = word.trim().toLowerCase();
-  const slug = trimmed
-    .replace(/[^\u0E00-\u0E7Fa-z0-9]+/g, "-")
+  const latinSlug = trimmed
+    .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-  return slug || `lesson-${Date.now()}`;
+
+  if (latinSlug && latinSlug.length >= 2) {
+    return latinSlug;
+  }
+
+  const timestamp = Date.now().toString(36);
+  const randomSuffix = Math.random().toString(36).substring(2, 6);
+  return `lesson-${timestamp}-${randomSuffix}`;
 }
 
 /**
@@ -109,11 +155,31 @@ export async function getLessons(options?: {
 }
 
 /**
- * Retrieve a single lesson by its ID
+ * Retrieve a single lesson by its ID (handles URL-encoded strings, Thai IDs, and cloud fallback)
  */
-export async function getLessonById(id: string): Promise<Lesson | null> {
-  const lessons = await getLessons({ includeInactive: true });
-  const found = lessons.find((item) => item.id === id);
+export async function getLessonById(
+  id: string,
+  options?: { forceCloudSync?: boolean }
+): Promise<Lesson | null> {
+  if (!id) return null;
+
+  let lessons = await getLessons({
+    includeInactive: true,
+    forceCloudSync: options?.forceCloudSync,
+  });
+
+  let found = lessons.find((item) => matchLesson(item, id));
+
+  // If not found in local cache and Supabase is configured, force a sync from cloud once
+  if (!found && isSupabaseConfigured() && !options?.forceCloudSync) {
+    try {
+      lessons = await getLessons({ includeInactive: true, forceCloudSync: true });
+      found = lessons.find((item) => matchLesson(item, id));
+    } catch {
+      // fallback on network error
+    }
+  }
+
   return found ? { ...found } : null;
 }
 

@@ -35,7 +35,13 @@ export function LessonDetailView({
 
     const loadLessonData = async () => {
       try {
-        const loadedLesson = await getLessonById(lessonId);
+        let cleanId = lessonId;
+        try {
+          cleanId = decodeURIComponent(lessonId);
+        } catch {
+          // ignore
+        }
+        const loadedLesson = await getLessonById(cleanId);
         if (!isMounted) return;
 
         setLesson(loadedLesson);
