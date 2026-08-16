@@ -14,7 +14,7 @@ import { Lesson } from "@/types";
 import { getLessons } from "@/lib/storage/lessonStorage";
 
 test("Supabase Lesson Database Storage Integration Test Suite", async (t) => {
-  await t.test("1. lessonToRow schema mapping: matches id, category_id, word, type, description, difficulty", () => {
+  await t.test("1. lessonToRow schema mapping: matches id, category_id, word, type, description, difficulty, demo_video_url", () => {
     const lesson: Lesson = {
       id: "lesson_test",
       categoryId: "greetings",
@@ -24,6 +24,8 @@ test("Supabase Lesson Database Storage Integration Test Suite", async (t) => {
       difficulty: "beginner",
       order: 1,
       example: "ยกมือไหว้",
+      videoUrl: "https://example.com/demo.mp4",
+      demoVideoUrl: "https://example.com/demo.mp4",
       isActive: true,
       createdAt: "2026-01-01T00:00:00.000Z",
       updatedAt: "2026-01-01T00:00:00.000Z",
@@ -36,12 +38,15 @@ test("Supabase Lesson Database Storage Integration Test Suite", async (t) => {
     assert.equal(row.type, "dynamic");
     assert.equal(row.description, "คำทักทาย");
     assert.equal(row.difficulty, "beginner");
+    assert.equal(row.demo_video_url, "https://example.com/demo.mp4");
 
     const backToLesson = rowToLesson(row as unknown as Record<string, unknown>);
     assert.equal(backToLesson.id, lesson.id);
     assert.equal(backToLesson.categoryId, lesson.categoryId);
     assert.equal(backToLesson.word, lesson.word);
     assert.equal(backToLesson.gestureType, "dynamic");
+    assert.equal(backToLesson.videoUrl, "https://example.com/demo.mp4");
+    assert.equal(backToLesson.demoVideoUrl, "https://example.com/demo.mp4");
     assert.equal(backToLesson.isActive, true);
   });
 

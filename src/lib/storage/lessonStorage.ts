@@ -258,6 +258,8 @@ export async function addLesson(
     order: data.order !== undefined && !isNaN(data.order) ? Number(data.order) : maxOrder + 1,
     difficulty: (data.difficulty as DifficultyLevel) || "beginner",
     example: data.example?.trim() || undefined,
+    videoUrl: data.videoUrl?.trim() || data.demoVideoUrl?.trim() || undefined,
+    demoVideoUrl: data.videoUrl?.trim() || data.demoVideoUrl?.trim() || undefined,
     isActive: data.isActive !== undefined ? Boolean(data.isActive) : true,
     createdAt: now,
     updatedAt: now,
@@ -318,6 +320,9 @@ export async function updateLesson(data: Lesson): Promise<Lesson> {
   const now = new Date().toISOString();
   const current = existing[idx];
 
+  const videoVal = data.videoUrl !== undefined ? data.videoUrl.trim() || undefined : current.videoUrl;
+  const demoVideoVal = data.demoVideoUrl !== undefined ? data.demoVideoUrl.trim() || undefined : (videoVal || current.demoVideoUrl);
+
   const updated: Lesson = {
     ...current,
     word,
@@ -327,6 +332,8 @@ export async function updateLesson(data: Lesson): Promise<Lesson> {
     difficulty: (data.difficulty as DifficultyLevel) || current.difficulty,
     order: data.order !== undefined && !isNaN(data.order) ? Number(data.order) : current.order,
     example: data.example !== undefined ? data.example.trim() : current.example,
+    videoUrl: videoVal,
+    demoVideoUrl: demoVideoVal,
     isActive: data.isActive !== undefined ? Boolean(data.isActive) : current.isActive,
     updatedAt: now,
   };

@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   getReferenceStoragePath,
   uploadReferenceToSupabase,
+  uploadDemoVideoToSupabase,
   fetchReferencesFromSupabase,
   deleteReferenceFromSupabase,
   syncLessonReferences,
@@ -45,7 +46,18 @@ test("Supabase Reference Gesture Storage Integration Test Suite", async (t) => {
     }
   });
 
-  await t.test("3. Unconfigured environment returns empty array on fetch without throwing", async () => {
+  await t.test("3. uploadDemoVideoToSupabase handles offline/unconfigured mode gracefully", async () => {
+    const isConfigured = isSupabaseConfigured();
+    const fakeFile = new File(["dummy video content"], "test_demo.mp4", { type: "video/mp4" });
+    const result = await uploadDemoVideoToSupabase(fakeFile, "test_lesson");
+
+    if (!isConfigured) {
+      assert.equal(result.success, false);
+      assert.ok(result.error?.includes("not configured"));
+    }
+  });
+
+  await t.test("4. Unconfigured environment returns empty array on fetch without throwing", async () => {
     const isConfigured = isSupabaseConfigured();
     if (!isConfigured) {
       const results = await fetchReferencesFromSupabase("hello");

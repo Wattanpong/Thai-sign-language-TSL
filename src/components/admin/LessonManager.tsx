@@ -248,20 +248,34 @@ export function LessonManager() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Check file size (max 50MB)
+    const maxSizeBytes = 50 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      showNotification("error", "ขนาดไฟล์วิดีโอต้องไม่เกิน 50MB");
+      e.target.value = "";
+      return;
+    }
+
     try {
       setIsUploadingVideo(true);
       const targetId = editingLesson?.id || formData.word.trim() || "demo";
       const res = await uploadDemoVideoToSupabase(file, targetId);
       if (res.success && res.url) {
-        setFormData((prev) => ({ ...prev, videoUrl: res.url || "" }));
-        showNotification("success", "อัปโหลดวิดีโอตัวอย่างขึ้น Cloud สำเร็จ");
+        setFormData((prev) => ({
+          ...prev,
+          videoUrl: res.url || "",
+        }));
+        showNotification("success", "อัปโหลดวิดีโอตัวอย่างขึ้น Cloud สำเร็จเรียบร้อยแล้ว");
       } else {
-        showNotification("error", res.error || "ไม่สามารถอัปโหลดวิดีโอได้");
+        const errText = res.error || "ไม่สามารถอัปโหลดวิดีโอได้ กรุณาตรวจสอบสิทธิ์ Storage Bucket";
+        showNotification("error", errText);
       }
-    } catch {
-      showNotification("error", "เกิดข้อผิดพลาดในการอัปโหลดวิดีโอ");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการเชื่อมต่อ Storage";
+      showNotification("error", msg);
     } finally {
       setIsUploadingVideo(false);
+      e.target.value = "";
     }
   };
 
@@ -799,15 +813,27 @@ export function LessonManager() {
                 </div>
 
                 {formData.videoUrl && (
-                  <div className="pt-1 flex items-center justify-between text-[11px] text-[#64748B]">
-                    <span className="truncate max-w-[280px]">✓ แนบวิดีโอ: {formData.videoUrl}</span>
-                    <button
-                      type="button"
-                      onClick={() => setFormData((prev) => ({ ...prev, videoUrl: "" }))}
-                      className="text-rose-500 hover:text-rose-700 font-semibold cursor-pointer"
-                    >
-                      ลบวิดีโอออก
-                    </button>
+                  <div className="pt-2 space-y-2 border-t border-slate-200">
+                    <div className="flex items-center justify-between text-[11px] text-[#64748B]">
+                      <span className="truncate max-w-[280px]">✓ แนบวิดีโอ: {formData.videoUrl}</span>
+                      <button
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, videoUrl: "" }))}
+                        className="text-rose-500 hover:text-rose-700 font-semibold cursor-pointer"
+                      >
+                        ลบวิดีโอออก
+                      </button>
+                    </div>
+
+                    <div className="relative rounded-lg overflow-hidden bg-slate-950 aspect-video max-h-[140px] flex items-center justify-center border border-slate-300">
+                      <video
+                        key={formData.videoUrl}
+                        src={formData.videoUrl}
+                        controls
+                        playsInline
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
                   </div>
                 )}
               </div>

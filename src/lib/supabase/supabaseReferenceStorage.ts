@@ -101,37 +101,62 @@ export async function uploadDemoVideoToSupabase(
   if (!supabase) {
     return {
       success: false,
-      error: "Supabase client is not configured",
+      error: "Supabase client is not configured (missing URL or Anon Key)",
     };
   }
 
   try {
-    const ext = file.name.split(".").pop() || "mp4";
-    const path = `demos/${lessonId}_${Date.now()}.${ext}`;
+    // Sanitize lessonId to safe URL-friendly ASCII slug
+    const safeId = encodeURIComponent((lessonId || "demo").trim()).replace(/[^a-zA-Z0-9-_]/g, "_") || "demo";
+    const rawExt = file.name.split(".").pop() || "mp4";
+    const ext = rawExt.toLowerCase().replace(/[^a-z0-9]/g, "") || "mp4";
+    const path = `demos/${safeId}-${Date.now()}.${ext}`;
+
+    const contentType = file.type && file.type.startsWith("video/")
+      ? file.type
+      : ext === "webm"
+      ? "video/webm"
+      : ext === "mov"
+      ? "video/quicktime"
+      : "video/mp4";
 
     const { data, error } = await supabase.storage
       .from(SUPABASE_BUCKET_NAME)
       .upload(path, file, {
-        contentType: file.type || "video/mp4",
+        contentType,
         upsert: true,
+        cacheControl: "3600",
       });
 
     if (error) {
-      console.warn(`[Supabase Storage] Demo video upload error for ${path}:`, error.message);
-      return { success: false, error: error.message };
+      const errorDetail = error.message || "Storage upload rejected";
+      console.warn(`[Supabase Storage] Demo video upload error for ${path}:`, errorDetail);
+      return {
+        success: false,
+        error: `ไม่สามารถอัปโหลดวิดีโอขึ้น Storage ได้: ${errorDetail}`,
+      };
     }
 
     const { data: publicUrlData } = supabase.storage
       .from(SUPABASE_BUCKET_NAME)
       .getPublicUrl(path);
 
+    const publicUrl = publicUrlData?.publicUrl;
+    if (!publicUrl) {
+      return {
+        success: false,
+        error: "ไม่สามารถดึง Public URL ของวิดีโอได้",
+      };
+    }
+
     return {
       success: true,
       path: data?.path || path,
-      url: publicUrlData?.publicUrl,
+      url: publicUrl,
     };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Failed uploading demo video";
+    const msg = err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการอัปโหลดวิดีโอ";
+    console.error("[Supabase Storage] Demo video upload exception:", msg);
     return { success: false, error: msg };
   }
 }
