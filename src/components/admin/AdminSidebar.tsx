@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 export interface AdminNavItem {
@@ -27,6 +27,7 @@ export interface AdminSidebarProps {
 
 export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
 
   return (
     <>
@@ -126,8 +127,8 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
             })}
           </nav>
 
-          {/* Return to Learner Site */}
-          <div className="pt-4 border-t border-[#E2E8F0]">
+          {/* Bottom Actions: Site Link & Logout */}
+          <div className="pt-4 border-t border-[#E2E8F0] space-y-1">
             <Link
               href="/"
               className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-[#64748B] hover:bg-[#F1F5F9] hover:text-[#0F172A] transition-colors"
@@ -147,6 +148,36 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
               </svg>
               <span>กลับสู่หน้าเว็บไซต์หลัก</span>
             </Link>
+
+            <button
+              type="button"
+              onClick={async () => {
+                if (onClose) onClose();
+                try {
+                  await fetch("/api/admin/auth/logout", { method: "POST" });
+                  router.push("/admin/login");
+                  router.refresh();
+                } catch {
+                  router.push("/admin/login");
+                }
+              }}
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 transition-colors"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+              <span>ออกจากระบบ Admin</span>
+            </button>
           </div>
         </div>
       </aside>
