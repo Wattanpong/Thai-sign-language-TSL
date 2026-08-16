@@ -2,6 +2,13 @@ import { ReferenceGesture } from "@/types";
 import { SEED_REFERENCE_GESTURES } from "@/data/seedReferences";
 import { evaluateReferenceQuality } from "@/lib/gesture/referenceQuality";
 import { getBestReference, rankReferences } from "@/lib/reference/referenceRanking";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
+import {
+  uploadReferenceToSupabase,
+  fetchReferencesFromSupabase,
+  deleteReferenceFromSupabase,
+  syncLessonReferences,
+} from "@/lib/supabase/supabaseReferenceStorage";
 
 const STORAGE_MULTI_PREFIX = "tsl_ref_set_";
 const LEGACY_STORAGE_PREFIX = "tsl_ref_gesture_";
@@ -29,7 +36,7 @@ function parseStoredReferences(data: string): ReferenceGesture[] {
 
 /**
  * Retrieve all Reference Gestures associated with a lesson
- * Automatically falls back to built-in seed references if no custom recordings exist
+ * Automatically falls back to Supabase cloud storage or built-in seed references if no custom recordings exist
  */
 export async function getReferencesByLessonId(
   lessonId: string
@@ -61,7 +68,21 @@ export async function getReferencesByLessonId(
     }
   }
 
-  // 3. Fallback to seed reference dataset if storage is empty
+  // 3. Fallback to Supabase cloud storage if local is empty and Supabase is configured
+  if (references.length === 0 && isSupabaseConfigured()) {
+    try {
+      const cloudRefs = await fetchReferencesFromSupabase(lessonId);
+      if (cloudRefs.length > 0) {
+        references = cloudRefs;
+        // Cache in local storage for fast subsequent loads
+        await persistLessonReferences(lessonId, cloudRefs);
+      }
+    } catch {
+      // fallback to seeds on network error
+    }
+  }
+
+  // 4. Fallback to seed reference dataset if storage is empty
   if (references.length === 0) {
     const seedList = SEED_REFERENCE_GESTURES[lessonId];
     if (seedList && seedList.length > 0) {
@@ -156,7 +177,8 @@ async function persistLessonReferences(
  * Automatically computes quality score and sets primary status if appropriate
  */
 export async function addReference(
-  gesture: ReferenceGesture
+  gesture: ReferenceGesture,
+  options: { syncCloud?: boolean } = { syncCloud: true }
 ): Promise<void> {
   // 1. Compute quality score if missing
   if (gesture.qualityScore === undefined) {
@@ -178,6 +200,13 @@ export async function addReference(
 
   const updatedList = [...existing.filter((r) => r.id !== gesture.id), gesture];
   await persistLessonReferences(gesture.lessonId, updatedList);
+
+  // Cloud sync if enabled and Supabase is configured
+  if (options.syncCloud !== false && isSupabaseConfigured()) {
+    uploadReferenceToSupabase(gesture).catch((err) => {
+      console.warn("[referenceStorage] Cloud sync warning:", err);
+    });
+  }
 }
 
 /**
@@ -197,6 +226,11 @@ export async function updateReference(
     }
     existing[idx] = gesture;
     await persistLessonReferences(gesture.lessonId, existing);
+    if (isSupabaseConfigured()) {
+      uploadReferenceToSupabase(gesture).catch((err) => {
+        console.warn("[referenceStorage] Cloud sync update warning:", err);
+      });
+    }
   } else {
     await addReference(gesture);
   }
@@ -230,7 +264,8 @@ export async function setPrimaryReference(
  * Delete a specific reference by its unique ID
  */
 export async function deleteReference(
-  id: string
+  id: string,
+  options: { syncCloud?: boolean } = { syncCloud: true }
 ): Promise<void> {
   // Find lessonId of this reference
   const target = await getReferenceGestureById(id);
@@ -248,6 +283,30 @@ export async function deleteReference(
   }
 
   await persistLessonReferences(target.lessonId, remaining);
+
+  if (options.syncCloud !== false && isSupabaseConfigured()) {
+    deleteReferenceFromSupabase(target.lessonId, id).catch((err) => {
+      console.warn("[referenceStorage] Cloud delete warning:", err);
+    });
+  }
+}
+
+/**
+ * Synchronize all local references for a lesson with Supabase Cloud
+ */
+export async function syncReferencesWithCloud(
+  lessonId: string
+): Promise<{
+  syncedToCloud: number;
+  downloadedFromCloud: number;
+  allReferences: ReferenceGesture[];
+}> {
+  const local = await getReferencesByLessonId(lessonId);
+  const syncResult = await syncLessonReferences(lessonId, local);
+  if (syncResult.allReferences.length > 0) {
+    await persistLessonReferences(lessonId, syncResult.allReferences);
+  }
+  return syncResult;
 }
 
 /**

@@ -416,7 +416,7 @@ export function ReferenceRecorder({ lesson, onSaved, onCancel }: ReferenceRecord
   };
 
   /**
-   * Save Reference Gesture to Storage
+   * Save Reference Gesture to Storage & Supabase Cloud
    */
   const handleSaveReference = async () => {
     if (!recordedGesture) return;
@@ -426,7 +426,9 @@ export function ReferenceRecorder({ lesson, onSaved, onCancel }: ReferenceRecord
       await saveReferenceGesture(recordedGesture);
       setExistingGesture(recordedGesture);
       setRecordingStatus("saved");
-      setSuccessMessage(`บันทึก Reference Gesture สำหรับคำว่า "${lesson.word}" สำเร็จเรียบร้อย`);
+      setSuccessMessage(
+        `บันทึก Reference Gesture สำหรับคำว่า "${lesson.word}" เรียบร้อยแล้ว (จัดเก็บในเครื่อง และ Sync ขึ้น Supabase Storage)`
+      );
       if (onSaved) {
         onSaved(recordedGesture);
       }

@@ -7,7 +7,6 @@ import {
   BodyContextFeatures,
   FingerAngles,
   FingerCurls,
-  Vector3D,
   ComponentScore,
   FeatureScoreBreakdown,
   FrameScore,
@@ -17,7 +16,7 @@ import {
   ScoringWeightsConfig,
   ScoringOptions,
 } from "@/types";
-import { dotProduct, dist3D, vectorLength } from "./featureExtraction";
+import { dist3D, vectorAngleDiff } from "./featureExtraction";
 import { computeDTW } from "@/lib/dtw/dtw";
 
 /* ==========================================================================
@@ -25,12 +24,12 @@ import { computeDTW } from "@/lib/dtw/dtw";
    ========================================================================== */
 
 export const DEFAULT_SCORING_WEIGHTS: ScoringWeightsConfig = {
-  handShape: 0.20,
+  handShape: 0.15,
   fingerAngle: 0.15,
   fingerCurl: 0.15,
-  palmOrientation: 0.15,
+  palmOrientation: 0.25,
   handPosition: 0.15,
-  twoHand: 0.15,
+  twoHand: 0.10,
   bodyContext: 0.05,
 };
 
@@ -65,19 +64,7 @@ export function diffToScore(
   return Math.max(0.0, Math.min(100.0, score));
 }
 
-/**
- * Computes angular difference between two 3D orientation vectors (in degrees 0..180)
- */
-export function vectorAngleDiff(v1: Vector3D, v2: Vector3D): number {
-  const len1 = vectorLength(v1);
-  const len2 = vectorLength(v2);
-  if (len1 < 1e-7 || len2 < 1e-7) {
-    return 0.0;
-  }
-  const dot = dotProduct(v1, v2) / (len1 * len2);
-  const clamped = Math.max(-1.0, Math.min(1.0, dot));
-  return Math.acos(clamped) * (180.0 / Math.PI);
-}
+
 
 /* ==========================================================================
    3. INDIVIDUAL FEATURE COMPARISON FUNCTIONS
@@ -97,7 +84,7 @@ export function compareFingerAngles(
 
   keys.forEach((k) => {
     const diff = Math.abs(refAngles[k] - userAngles[k]);
-    const jointScore = diffToScore(diff, 6.0 * tolMul, 18.0);
+    const jointScore = diffToScore(diff, 10.0 * tolMul, 25.0);
     totalScore += jointScore;
 
     if (jointScore < 60) {
@@ -111,7 +98,7 @@ export function compareFingerAngles(
         ? "นิ้วนาง"
         : "นิ้วก้อย";
 
-      const severity: ScoreSeverity = jointScore < 40 ? "error" : "warning";
+      const severity: ScoreSeverity = jointScore < 30 ? "error" : "warning";
       feedback.push({
         category: "fingerAngle",
         message: `มุมข้อนิ้ว${fingerName}ทำมุมต่างจากตัวอย่าง (${Math.round(diff)}°)`,
@@ -143,7 +130,7 @@ export function compareFingerCurls(
   keys.forEach((k) => {
     const diff = userCurls[k] - refCurls[k];
     const absDiff = Math.abs(diff);
-    const curlScore = diffToScore(absDiff, 0.06 * tolMul, 0.18);
+    const curlScore = diffToScore(absDiff, 0.10 * tolMul, 0.24);
     totalScore += curlScore;
 
     if (curlScore < 65) {
@@ -156,7 +143,7 @@ export function compareFingerCurls(
       feedback.push({
         category: "fingerCurl",
         message,
-        severity: curlScore < 45 ? "error" : "warning",
+        severity: curlScore < 30 ? "error" : "warning",
         score: Math.round(curlScore),
         relatedFeature: `curl_${k}`,
       });
@@ -179,7 +166,7 @@ export function compareHandShape(
 ): { score: number; feedback: ScoreFeedback[] } {
   const feedback: ScoreFeedback[] = [];
   const spreadDiff = Math.abs(refHand.handSpread - userHand.handSpread);
-  const spreadScore = diffToScore(spreadDiff, 0.08 * tolMul, 0.16);
+  const spreadScore = diffToScore(spreadDiff, 0.10 * tolMul, 0.20);
 
   if (spreadScore < 60) {
     const message =
@@ -190,7 +177,7 @@ export function compareHandShape(
     feedback.push({
       category: "handShape",
       message,
-      severity: spreadScore < 40 ? "error" : "warning",
+      severity: spreadScore < 30 ? "error" : "warning",
       score: Math.round(spreadScore),
       relatedFeature: "handSpread",
     });
@@ -213,19 +200,19 @@ export function comparePalmOrientation(
   const feedback: ScoreFeedback[] = [];
 
   const normalAngle = vectorAngleDiff(refHand.palmNormal, userHand.palmNormal);
-  const normalScore = diffToScore(normalAngle, 10.0 * tolMul, 24.0);
+  const normalScore = diffToScore(normalAngle, 15.0 * tolMul, 30.0);
 
   const facingAngle = vectorAngleDiff(
     refHand.handFacingVector,
     userHand.handFacingVector
   );
-  const facingScore = diffToScore(facingAngle, 10.0 * tolMul, 24.0);
+  const facingScore = diffToScore(facingAngle, 15.0 * tolMul, 30.0);
 
   // Minimum penalty weighting to avoid masking completely wrong orientation
   const combinedScore = Math.min(normalScore, facingScore) * 0.6 + ((normalScore + facingScore) / 2) * 0.4;
 
   if (combinedScore < 65) {
-    const isMajor = combinedScore < 40;
+    const isMajor = combinedScore < 35;
     feedback.push({
       category: "palmOrientation",
       message: `ทิศทางการหันของฝ่ามือหรือมุมชี้ของมือเบี่ยงเบนจากตัวอย่าง (${Math.round(Math.max(normalAngle, facingAngle))}°)`,
@@ -277,7 +264,7 @@ export function compareHandPosition(
     feedback.push({
       category: "handPosition",
       message: positionNote,
-      severity: posScore < 40 ? "error" : "warning",
+      severity: posScore < 30 ? "error" : "warning",
       score: Math.round(posScore),
       relatedFeature: "posRelShoulderCenter",
     });
@@ -660,39 +647,81 @@ export function scoreGesture(
   let numEvaluated = 0;
 
   if (isStatic) {
-    // Static Gesture: Compare against representative keyframe
+    // Static Gesture: Compare against representative keyframe using Sliding Window Stability
     const refKeyframe =
       reference.frames[Math.floor(reference.frames.length / 2)] || reference.frames[0];
 
-    let bestFrameScore = -1;
-    let bestComparison = compareSingleFrame(refKeyframe, user.frames[0], options);
+    const frameEvaluations = user.frames.map((uFrame) =>
+      compareSingleFrame(refKeyframe, uFrame, options)
+    );
 
-    user.frames.forEach((uFrame) => {
-      const cmp = compareSingleFrame(refKeyframe, uFrame, options);
-      if (cmp.score > bestFrameScore) {
-        bestFrameScore = cmp.score;
-        bestComparison = cmp;
+    const N = frameEvaluations.length;
+    const targetHoldFrames = 12;
+    const windowSize = Math.max(1, Math.min(targetHoldFrames, N));
+
+    let bestWindowScore = -1;
+    let bestWindowStart = 0;
+    let bestWindowEnd = windowSize - 1;
+
+    for (let i = 0; i <= N - windowSize; i++) {
+      const windowEvals = frameEvaluations.slice(i, i + windowSize);
+      const meanScore =
+        windowEvals.reduce((sum, e) => sum + e.score, 0) / windowSize;
+
+      // Variance calculation for stability
+      const variance =
+        windowEvals.reduce((sum, e) => sum + Math.pow(e.score - meanScore, 2), 0) / windowSize;
+      const stdDev = Math.sqrt(variance);
+      // Stability bonus/penalty
+      const stabilityBonus = Math.max(0.7, 1.0 - stdDev / 100.0);
+
+      const effectiveWindowScore = meanScore * stabilityBonus;
+
+      if (effectiveWindowScore > bestWindowScore) {
+        bestWindowScore = effectiveWindowScore;
+        bestWindowStart = i;
+        bestWindowEnd = i + windowSize - 1;
+      }
+    }
+
+    // Selected sustained window frames
+    const sustainedEvaluations = frameEvaluations.slice(
+      bestWindowStart,
+      bestWindowEnd + 1
+    );
+
+    // If total user sequence is too short or flick (< 8 frames), apply hold duration penalty
+    const holdCoverageFactor = N < 8 ? Math.max(0.3, N / targetHoldFrames) : 1.0;
+
+    numEvaluated = sustainedEvaluations.length;
+    sustainedEvaluations.forEach((cmp, idx) => {
+      sumOverallScore += cmp.score * holdCoverageFactor;
+      sumConfidence += cmp.confidence;
+      sumHandShape += cmp.breakdown.handShape.score;
+      sumFingerAngle += cmp.breakdown.fingerAngle.score;
+      sumFingerCurl += cmp.breakdown.fingerCurl.score;
+      sumPalmOrient += cmp.breakdown.palmOrientation.score;
+      sumHandPos += cmp.breakdown.handPosition.score;
+      sumTwoHand += cmp.breakdown.twoHand.score;
+      sumBody += cmp.breakdown.bodyContext.score;
+      rawFeedback.push(...cmp.feedback);
+
+      if (options.includePerFrameScores) {
+        perFrameScores.push({
+          frameIndex: bestWindowStart + idx,
+          timestampMs: user.frames[bestWindowStart + idx]?.timestampMs ?? 0,
+          score: Math.round(cmp.score),
+          breakdown: cmp.breakdown,
+        });
       }
     });
 
-    sumOverallScore = bestComparison.score;
-    sumConfidence = bestComparison.confidence;
-    sumHandShape = bestComparison.breakdown.handShape.score;
-    sumFingerAngle = bestComparison.breakdown.fingerAngle.score;
-    sumFingerCurl = bestComparison.breakdown.fingerCurl.score;
-    sumPalmOrient = bestComparison.breakdown.palmOrientation.score;
-    sumHandPos = bestComparison.breakdown.handPosition.score;
-    sumTwoHand = bestComparison.breakdown.twoHand.score;
-    sumBody = bestComparison.breakdown.bodyContext.score;
-    rawFeedback.push(...bestComparison.feedback);
-    numEvaluated = 1;
-
-    if (options.includePerFrameScores) {
-      perFrameScores.push({
-        frameIndex: 0,
-        timestampMs: refKeyframe.timestampMs,
-        score: Math.round(bestComparison.score),
-        breakdown: bestComparison.breakdown,
+    if (N < 8) {
+      rawFeedback.push({
+        category: "coverage",
+        message: "ระยะเวลาในการค้างท่านิ่งสั้นเกินไป ควรค้างท่าไว้อย่างน้อย 0.5–1 วินาที",
+        severity: "warning",
+        score: Math.round(holdCoverageFactor * 100),
       });
     }
   } else {
@@ -812,6 +841,18 @@ export function scoreGesture(
   let finalOverallScore = Math.round(sumOverallScore / numEvaluated);
   let finalConfidence = Number((sumConfidence / numEvaluated).toFixed(2));
 
+  // Critical Error Clamping 1: Wrong Palm Orientation (< 40)
+  if (finalBreakdown.palmOrientation.score < 40) {
+    finalOverallScore = Math.min(finalOverallScore, 50);
+    prioritizedFeedback.unshift({
+      category: "palmOrientation",
+      message: "ทิศทางการหันของฝ่ามือหรือมุมชี้ของมือผิดทิศทางอย่างมาก (คะแนนถูกจำกัดไม่เกิน 50 คะแนน)",
+      severity: "error",
+      score: finalBreakdown.palmOrientation.score,
+    });
+  }
+
+  // Critical Error Clamping 2: Missing Required Hand
   if (options.requiresBothHands && !userHasBothHands) {
     // Missing required second hand reduces score and confidence
     finalOverallScore = Math.min(38, Math.round(finalOverallScore * 0.70));

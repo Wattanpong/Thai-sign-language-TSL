@@ -12,8 +12,8 @@ import {
   DTWMatch,
   DTWFramePair,
 } from "@/types";
-import { DEFAULT_SCORING_WEIGHTS, vectorAngleDiff } from "@/lib/gesture/scoring";
-import { dist3D } from "@/lib/gesture/featureExtraction";
+import { DEFAULT_SCORING_WEIGHTS } from "@/lib/gesture/scoring";
+import { dist3D, vectorAngleDiff } from "@/lib/gesture/featureExtraction";
 
 /* ==========================================================================
    1. FEATURE DISTANCE CALCULATION

@@ -7,6 +7,7 @@ import {
 } from "@/types";
 import { extractGestureSequenceFeatures } from "@/lib/gesture/featureExtraction";
 import { scoreGesture } from "@/lib/gesture/scoring";
+import { trimGestureSequence } from "@/lib/gesture/motionTrimming";
 import { filterUsableReferences } from "@/lib/reference/referenceRanking";
 
 export type PracticeSessionState =
@@ -83,13 +84,18 @@ export function evaluatePracticeFrames(
   };
 
   const userSequence = extractGestureSequenceFeatures(userGesture);
+  const trimmedUserSequence = trimGestureSequence(userSequence, {
+    gestureType: lesson.gestureType,
+    minRetainedRatio: 0.6,
+    minRequiredFrames: minFrames,
+  });
 
   // 3. Single reference fast-path
   if (usableReferences.length === 1) {
     const singleRef = usableReferences[0];
     const referenceSequence = extractGestureSequenceFeatures(singleRef);
 
-    const score = scoreGesture(referenceSequence, userSequence, {
+    const score = scoreGesture(referenceSequence, trimmedUserSequence, {
       gestureType: lesson.gestureType,
       requiresBothHands:
         lesson.word === "สวัสดี" ||
@@ -121,7 +127,7 @@ export function evaluatePracticeFrames(
     const requiresBothHands =
       lesson.word === "สวัสดี" || ref.frames.some((f) => f.hands.length >= 2);
 
-    const score = scoreGesture(refSeq, userSequence, {
+    const score = scoreGesture(refSeq, trimmedUserSequence, {
       gestureType: lesson.gestureType,
       requiresBothHands,
       includePerFrameScores: true,

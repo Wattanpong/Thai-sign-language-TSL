@@ -6,7 +6,9 @@ import {
   getReferencesByLessonId,
   deleteReference,
   setPrimaryReference,
+  syncReferencesWithCloud,
 } from "@/lib/storage/referenceStorage";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { ReferenceRecorder } from "./ReferenceRecorder";
 import { ReferenceInspector } from "./ReferenceInspector";
 import { Card, Button, Badge } from "@/components/ui";
@@ -19,6 +21,7 @@ export function ReferenceManager({ lesson }: ReferenceManagerProps) {
   const [references, setReferences] = React.useState<ReferenceGesture[]>([]);
   const [activeGesture, setActiveGesture] = React.useState<ReferenceGesture | null>(null);
   const [isLoaded, setIsLoaded] = React.useState(false);
+  const [isSyncing, setIsSyncing] = React.useState(false);
   const [mode, setMode] = React.useState<"list" | "recorder" | "inspector">("list");
   const [notification, setNotification] = React.useState<{ message: string; type: "success" | "error" } | null>(null);
 
@@ -84,6 +87,22 @@ export function ReferenceManager({ lesson }: ReferenceManagerProps) {
     }
   };
 
+  const handleSyncCloud = async () => {
+    setIsSyncing(true);
+    try {
+      const result = await syncReferencesWithCloud(lesson.id);
+      setNotification({
+        message: `Sync กับ Supabase Storage เรียบร้อย (ส่งขึ้น Cloud: ${result.syncedToCloud}, ดึงจาก Cloud: ${result.downloadedFromCloud})`,
+        type: "success",
+      });
+      await loadReferences();
+    } catch {
+      setNotification({ message: "เกิดข้อผิดพลาดในการ Sync กับ Cloud", type: "error" });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   if (!isLoaded) {
     return (
       <div className="p-12 text-center text-slate-400">
@@ -144,6 +163,8 @@ export function ReferenceManager({ lesson }: ReferenceManagerProps) {
     0
   );
 
+  const cloudReady = isSupabaseConfigured();
+
   return (
     <div className="space-y-6">
       {/* Notification banner */}
@@ -176,6 +197,9 @@ export function ReferenceManager({ lesson }: ReferenceManagerProps) {
             <Badge variant="tag">
               {references.length} ตัวอย่าง
             </Badge>
+            <Badge variant={cloudReady ? "success" : "outline"}>
+              {cloudReady ? "☁️ Supabase Connected" : "💾 Local Storage Mode"}
+            </Badge>
           </div>
           <p className="text-xs text-[#64748B]">
             มี Reference หลากหลายตัวอย่างช่วยให้ AI ประเมินผู้เรียนได้แม่นยำและลดความลำเอียง
@@ -183,14 +207,28 @@ export function ReferenceManager({ lesson }: ReferenceManagerProps) {
           </p>
         </div>
 
-        <Button
-          variant="amber"
-          size="md"
-          onClick={() => setMode("recorder")}
-          className="font-bold shadow-xs"
-        >
-          + บันทึกตัวอย่างเพิ่ม (Add Example)
-        </Button>
+        <div className="flex items-center gap-2.5">
+          {cloudReady && (
+            <Button
+              variant="outline"
+              size="md"
+              onClick={handleSyncCloud}
+              disabled={isSyncing}
+              className="text-xs font-semibold"
+            >
+              {isSyncing ? "กำลัง Sync..." : "☁️ Sync Cloud"}
+            </Button>
+          )}
+
+          <Button
+            variant="amber"
+            size="md"
+            onClick={() => setMode("recorder")}
+            className="font-bold shadow-xs"
+          >
+            + บันทึกตัวอย่างเพิ่ม (Add Example)
+          </Button>
+        </div>
       </div>
 
       {/* List of References */}

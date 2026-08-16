@@ -28,6 +28,7 @@ import {
   extractFrameFeatures,
   extractGestureSequenceFeatures,
 } from "@/lib/gesture/featureExtraction";
+import { LandmarkSequenceFilter } from "@/lib/gesture/oneEuroFilter";
 import {
   detectScoreAnomalies,
   ScoreAnomalyReport,
@@ -82,6 +83,9 @@ export function usePracticeSession(lesson: Lesson): UsePracticeSessionReturn {
   const liveSmootherRef = React.useRef<LiveFeedbackSmoother>(
     new LiveFeedbackSmoother({ alpha: 0.35, minFeedbackHoldMs: 450 })
   );
+  const landmarkFilterRef = React.useRef<LandmarkSequenceFilter>(
+    new LandmarkSequenceFilter()
+  );
 
   // 1. Load Reference Gestures (Multi-Reference dataset) for the active lesson
   React.useEffect(() => {
@@ -90,6 +94,7 @@ export function usePracticeSession(lesson: Lesson): UsePracticeSessionReturn {
     isPracticingRef.current = false;
     refSequenceRef.current = null;
     liveSmootherRef.current.reset();
+    landmarkFilterRef.current.reset();
 
     async function loadRefs() {
       try {
@@ -141,6 +146,7 @@ export function usePracticeSession(lesson: Lesson): UsePracticeSessionReturn {
     setLiveFeedback(null);
     recordedFramesRef.current = [];
     liveSmootherRef.current.reset();
+    landmarkFilterRef.current.reset();
     setLiveDurationSec(0);
     setLiveFrameCount(0);
 
@@ -196,11 +202,16 @@ export function usePracticeSession(lesson: Lesson): UsePracticeSessionReturn {
           visibility: pt.visibility,
         }));
 
-        recordedFramesRef.current.push({
-          timestampMs: Math.round(elapsed),
+        const timestampMs = Math.round(elapsed);
+        const rawFrame: ReferenceFrame = {
+          timestampMs,
           hands: recordedHands,
           pose: recordedPose,
-        });
+        };
+
+        // Smooth 3D landmark coordinates using 1€ Filter
+        const smoothedFrame = landmarkFilterRef.current.filterFrame(rawFrame);
+        recordedFramesRef.current.push(smoothedFrame);
 
         // Throttle UI duration & frame count updates
         setLiveDurationSec(Number((elapsed / 1000).toFixed(1)));
@@ -216,12 +227,8 @@ export function usePracticeSession(lesson: Lesson): UsePracticeSessionReturn {
           lastFeedbackTimeRef.current = now;
 
           try {
-            // Extract single frame features for the current live frame
-            const userFeatureFrame = extractFrameFeatures({
-              timestampMs: Math.round(elapsed),
-              hands: recordedHands,
-              pose: recordedPose,
-            });
+            // Extract single frame features for the current smoothed live frame
+            const userFeatureFrame = extractFrameFeatures(smoothedFrame);
 
             // Select optimal reference frame for live feedback (static vs dynamic progress)
             const target = getReferenceFrameForLiveFeedback(
@@ -334,6 +341,7 @@ export function usePracticeSession(lesson: Lesson): UsePracticeSessionReturn {
     isPracticingRef.current = false;
     recordedFramesRef.current = [];
     liveSmootherRef.current.reset();
+    landmarkFilterRef.current.reset();
     setLiveFeedback(null);
     setLiveDurationSec(0);
     setLiveFrameCount(0);

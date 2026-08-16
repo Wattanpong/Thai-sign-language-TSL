@@ -351,4 +351,74 @@ test("Gesture Scoring Engine Unit Tests", async (t) => {
     assert.ok(result.feedback.some((f) => f.message.includes("นิ้วก้อย")));
     assert.ok(!result.feedback.some((f) => f.message.includes("นิ้วโป้ง")));
   });
+
+  await t.test("15. Static Gesture Sustained Hold (15 frames) Receives High Score", () => {
+    const ref = createMockSequence(15, 1000);
+    const user = createMockSequence(15, 1000); // perfectly sustained hold
+
+    const result = scoreGesture(ref, user, { gestureType: "static" });
+    assert.ok(result.overallScore >= 95, `Expected >= 95, got ${result.overallScore}`);
+  });
+
+  await t.test("16. Static Gesture Quick Flick (< 200ms) Fails Sliding Window Stability", () => {
+    const ref = createMockSequence(15, 1000);
+    // User flicked for 2 frames, but the remaining 10 frames had wrong hand or wrong pose
+    const flickUserFrames = Array.from({ length: 12 }, (_, i) => {
+      if (i < 2) {
+        return createMockFrame(i * 50); // correct for 2 frames
+      }
+      return createMockFrame(i * 50, {
+        rightHand: createMockHand("Right", {
+          fingerCurls: createMockFingerCurls({ thumb: 0.9, index: 0.9, middle: 0.9, ring: 0.9, pinky: 0.9 }),
+          palmNormal: { x: 0, y: 0, z: -1 }, // flipped backwards
+        }),
+        leftHand: createMockHand("Left", {
+          fingerCurls: createMockFingerCurls({ thumb: 0.9, index: 0.9, middle: 0.9, ring: 0.9, pinky: 0.9 }),
+          palmNormal: { x: 0, y: 0, z: -1 },
+        }),
+      });
+    });
+
+    const flickUser: GestureFeatureSequence = {
+      durationMs: 600,
+      frameCount: 12,
+      frames: flickUserFrames,
+    };
+
+    const result = scoreGesture(ref, flickUser, { gestureType: "static" });
+    assert.ok(result.overallScore < 60, `Flick gesture should score low, got ${result.overallScore}`);
+  });
+
+  await t.test("17. Critical Error Clamping: Inverted Palm Orientation (> 60 deg) is Clamped <= 50", () => {
+    const ref = createMockSequence(12, 1000);
+    // User hand has perfect finger curls and position, but palm normal is facing 180 degrees away (inverted)
+    const invertedUser = createMockSequence(12, 1000, () => ({
+      rightHand: createMockHand("Right", {
+        palmNormal: { x: 0, y: 0, z: -1 }, // 180 deg away from ref (z: 1)
+        handFacingVector: { x: 0, y: 1, z: 0 }, // pointing up instead of down
+      }),
+      leftHand: createMockHand("Left", {
+        palmNormal: { x: 0, y: 0, z: -1 },
+        handFacingVector: { x: 0, y: 1, z: 0 },
+      }),
+    }));
+
+    const result = scoreGesture(ref, invertedUser, { gestureType: "dynamic" });
+    assert.ok(result.palmOrientationScore < 40, `Palm score should be < 40, got ${result.palmOrientationScore}`);
+    assert.ok(result.overallScore <= 50, `Overall score should be clamped to <= 50, got ${result.overallScore}`);
+    assert.ok(result.feedback.some((f) => f.category === "palmOrientation" && f.severity === "error"));
+  });
+
+  await t.test("18. Physiological Variations (Minor 5 deg Angle & 0.08 Curl) Retain High Score >= 90", () => {
+    const ref = createMockSequence(10, 1000);
+    const user = createMockSequence(10, 1000, () => ({
+      rightHand: createMockHand("Right", {
+        fingerAngles: createMockFingerAngles({ indexMCP: 170, middleMCP: 175 }), // 5 deg diff
+        fingerCurls: createMockFingerCurls({ index: 0.12, middle: 0.11 }), // 0.07 diff
+      }),
+    }));
+
+    const result = scoreGesture(ref, user, { gestureType: "dynamic" });
+    assert.ok(result.overallScore >= 90, `Expected score >= 90 with calibrated tolerance, got ${result.overallScore}`);
+  });
 });

@@ -249,4 +249,113 @@ test("Feature Extraction Unit Tests", async (t) => {
       assert.ok(seq.frames[i].timestampMs >= seq.frames[i - 1].timestampMs);
     }
   });
+
+  await t.test("11. Hand Assignment: Inverted Single Hand (MediaPipe says Left but position is clearly Right)", () => {
+    // MediaPipe labeled hand as "Left", but wrist is at x = 0.35 (clearly user's right hand on image-left)
+    const rawFrame: ReferenceFrame = {
+      timestampMs: 100,
+      hands: [createMockHand("Left", 0.35, 0.4, 0.1)],
+      pose: createMockPose(0.5, 0.5, 0.4),
+    };
+
+    const features = extractFrameFeatures(rawFrame);
+    // Spatial fallback must correct this to Right Hand
+    assert.ok(features.rightHand?.detected, "Should assign to rightHand via spatial fallback");
+    assert.equal(features.leftHand, null);
+    assert.equal(features.rightHand.handedness, "Right");
+  });
+
+  await t.test("12. Hand Assignment: Inverted Single Hand (MediaPipe says Right but position is clearly Left)", () => {
+    // MediaPipe labeled hand as "Right", but wrist is at x = 0.65 (clearly user's left hand on image-right)
+    const rawFrame: ReferenceFrame = {
+      timestampMs: 100,
+      hands: [createMockHand("Right", 0.65, 0.4, 0.1)],
+      pose: createMockPose(0.5, 0.5, 0.4),
+    };
+
+    const features = extractFrameFeatures(rawFrame);
+    // Spatial fallback must correct this to Left Hand
+    assert.ok(features.leftHand?.detected, "Should assign to leftHand via spatial fallback");
+    assert.equal(features.rightHand, null);
+    assert.equal(features.leftHand.handedness, "Left");
+  });
+
+  await t.test("13. Hand Assignment: Two Hands with Duplicate Label (Both labeled Right by MediaPipe)", () => {
+    // MediaPipe bug: both hands labeled "Right"
+    // Hand 1 at x = 0.38 (image-left = User's Right Hand)
+    // Hand 2 at x = 0.62 (image-right = User's Left Hand)
+    const rawFrame: ReferenceFrame = {
+      timestampMs: 100,
+      hands: [
+        createMockHand("Right", 0.38, 0.4, 0.1),
+        createMockHand("Right", 0.62, 0.4, 0.1),
+      ],
+      pose: createMockPose(0.5, 0.5, 0.4),
+    };
+
+    const features = extractFrameFeatures(rawFrame);
+    assert.ok(features.rightHand?.detected, "Right hand should be resolved from smaller x");
+    assert.ok(features.leftHand?.detected, "Left hand should be resolved from larger x");
+    assert.equal(features.twoHand?.bothHandsDetected, true);
+  });
+
+  await t.test("14. Hand Assignment: Two Hands with Duplicate Label (Both labeled Left by MediaPipe)", () => {
+    const rawFrame: ReferenceFrame = {
+      timestampMs: 100,
+      hands: [
+        createMockHand("Left", 0.38, 0.4, 0.1),
+        createMockHand("Left", 0.62, 0.4, 0.1),
+      ],
+      pose: createMockPose(0.5, 0.5, 0.4),
+    };
+
+    const features = extractFrameFeatures(rawFrame);
+    assert.ok(features.rightHand?.detected, "Right hand should be resolved from smaller x");
+    assert.ok(features.leftHand?.detected, "Left hand should be resolved from larger x");
+    assert.equal(features.twoHand?.bothHandsDetected, true);
+  });
+
+  await t.test("15. Hand Assignment: Completely Inverted Two Hands", () => {
+    // Hand at x = 0.35 labeled "Left" and Hand at x = 0.65 labeled "Right"
+    const rawFrame: ReferenceFrame = {
+      timestampMs: 100,
+      hands: [
+        createMockHand("Left", 0.35, 0.4, 0.1),
+        createMockHand("Right", 0.65, 0.4, 0.1),
+      ],
+      pose: createMockPose(0.5, 0.5, 0.4),
+    };
+
+    const features = extractFrameFeatures(rawFrame);
+    assert.ok(features.rightHand?.detected);
+    assert.ok(features.leftHand?.detected);
+    assert.equal(features.rightHand.handedness, "Right");
+    assert.equal(features.leftHand.handedness, "Left");
+  });
+
+  await t.test("16. Hand Assignment: Empty / Missing Hands", () => {
+    const rawFrame: ReferenceFrame = {
+      timestampMs: 100,
+      hands: [],
+      pose: createMockPose(0.5, 0.5, 0.4),
+    };
+
+    const features = extractFrameFeatures(rawFrame);
+    assert.equal(features.rightHand, null);
+    assert.equal(features.leftHand, null);
+    assert.equal(features.twoHand?.bothHandsDetected, false);
+  });
+
+  await t.test("17. Hand Assignment: Single Hand near chest center trusts primary label", () => {
+    // Hand at chest center (x = 0.5) with primary label "Right"
+    const rawFrame: ReferenceFrame = {
+      timestampMs: 100,
+      hands: [createMockHand("Right", 0.5, 0.4, 0.1)],
+      pose: createMockPose(0.5, 0.5, 0.4),
+    };
+
+    const features = extractFrameFeatures(rawFrame);
+    assert.ok(features.rightHand?.detected);
+    assert.equal(features.leftHand, null);
+  });
 });

@@ -2,6 +2,7 @@ import {
   NormalizedLandmark,
   ReferenceFrame,
   ReferenceGesture,
+  ReferenceHand,
   Vector3D,
   FingerAngles,
   FingerCurls,
@@ -74,6 +75,20 @@ export function normalizeVector(v: Vector3D): Vector3D {
     y: v.y / len,
     z: v.z / len,
   };
+}
+
+/**
+ * Computes angular difference between two 3D orientation vectors (in degrees 0..180)
+ */
+export function vectorAngleDiff(v1: Vector3D, v2: Vector3D): number {
+  const len1 = vectorLength(v1);
+  const len2 = vectorLength(v2);
+  if (len1 < 1e-7 || len2 < 1e-7) {
+    return 0.0;
+  }
+  const dot = dotProduct(v1, v2) / (len1 * len2);
+  const clamped = Math.max(-1.0, Math.min(1.0, dot));
+  return Math.acos(clamped) * (180.0 / Math.PI);
 }
 
 /**
@@ -449,9 +464,133 @@ export function extractTwoHandFeatures(
   };
 }
 
-/* ==========================================================================
-   6. FRAME & SEQUENCE FEATURE EXTRACTION PIPELINE
-   ========================================================================== */
+export interface AssignedHands {
+  leftHand: ReferenceHand | null;
+  rightHand: ReferenceHand | null;
+}
+
+/**
+ * Robust Hand Assignment with Spatial Fallback:
+ * Resolves left and right hands from raw detected hands by:
+ * 1. Using MediaPipe handedness classification as primary signal
+ * 2. Cross-verifying with spatial X coordinates relative to body midline
+ * 3. Disambiguating duplicate labels (e.g. both labeled "Right") using horizontal ordering
+ * In camera coordinate space (0..1 where 0 is image-left, 1 is image-right):
+ * - User's anatomical Right Hand is on the image-left (smaller X)
+ * - User's anatomical Left Hand is on the image-right (larger X)
+ */
+export function resolveHandAssignment(
+  hands: ReferenceHand[] | undefined,
+  bodyContext: BodyContextFeatures
+): AssignedHands {
+  if (!hands || hands.length === 0) {
+    return { leftHand: null, rightHand: null };
+  }
+
+  // Helper to calculate hand center (average of wrist + MCPs)
+  const getHandX = (hand: ReferenceHand): number => {
+    if (!hand.landmarks || hand.landmarks.length === 0) return 0.5;
+    const wrist = hand.landmarks[0];
+    const indexMCP = hand.landmarks[5];
+    const pinkyMCP = hand.landmarks[17];
+    if (wrist && indexMCP && pinkyMCP) {
+      return (wrist.x + indexMCP.x + pinkyMCP.x) / 3;
+    }
+    return wrist ? wrist.x : 0.5;
+  };
+
+  const bodyMidlineX = bodyContext.detected
+    ? bodyContext.shoulderCenter.x
+    : 0.5;
+  const shoulderHalfWidth = bodyContext.detected
+    ? bodyContext.shoulderWidth / 2
+    : 0.175;
+
+  // Case 1: Two Hands in Frame
+  if (hands.length >= 2) {
+    const handA = hands[0];
+    const handB = hands[1];
+    const xA = getHandX(handA);
+    const xB = getHandX(handB);
+
+    // If handednesses are distinct (one Left, one Right)
+    if (handA.handedness !== handB.handedness) {
+      const leftCandidate = handA.handedness === "Left" ? handA : handB;
+      const rightCandidate = handA.handedness === "Right" ? handA : handB;
+      const xLeft = getHandX(leftCandidate);
+      const xRight = getHandX(rightCandidate);
+
+      // Check for extreme spatial contradiction:
+      // If the labeled Left hand is on the far image-left side (xLeft < bodyMidlineX - margin)
+      // AND labeled Right hand is on the far image-right side (xRight > bodyMidlineX + margin)
+      // AND xRight > xLeft, then handedness labels are completely inverted!
+      const margin = Math.max(0.04, shoulderHalfWidth * 0.25);
+      const isCompletelyInverted =
+        xLeft < bodyMidlineX - margin &&
+        xRight > bodyMidlineX + margin &&
+        xRight > xLeft;
+
+      if (isCompletelyInverted) {
+        // Swap to correct inverted handedness
+        return {
+          leftHand: { ...rightCandidate, handedness: "Left" },
+          rightHand: { ...leftCandidate, handedness: "Right" },
+        };
+      }
+
+      // Normal consistent case: trust distinct labels
+      return {
+        leftHand: leftCandidate,
+        rightHand: rightCandidate,
+      };
+    }
+
+    // Handedness collision: Both labeled "Left" or both labeled "Right"
+    // In camera space: Smaller X is image-left (User's Right Hand), Larger X is image-right (User's Left Hand)
+    if (xA <= xB) {
+      return {
+        rightHand: { ...handA, handedness: "Right" },
+        leftHand: { ...handB, handedness: "Left" },
+      };
+    } else {
+      return {
+        rightHand: { ...handB, handedness: "Right" },
+        leftHand: { ...handA, handedness: "Left" },
+      };
+    }
+  }
+
+  // Case 2: Exactly One Hand in Frame
+  const singleHand = hands[0];
+  const handX = getHandX(singleHand);
+  const labeledHandedness = singleHand.handedness;
+
+  // Spatial clearance: Is the hand significantly on one side of the body?
+  const margin = Math.max(0.04, shoulderHalfWidth * 0.4);
+
+  // If labeled "Left", but clearly located deep in the Right-hand zone (image-left: handX < bodyMidlineX - margin)
+  if (labeledHandedness === "Left" && handX < bodyMidlineX - margin) {
+    return {
+      leftHand: null,
+      rightHand: { ...singleHand, handedness: "Right" },
+    };
+  }
+
+  // If labeled "Right", but clearly located deep in the Left-hand zone (image-right: handX > bodyMidlineX + margin)
+  if (labeledHandedness === "Right" && handX > bodyMidlineX + margin) {
+    return {
+      leftHand: { ...singleHand, handedness: "Left" },
+      rightHand: null,
+    };
+  }
+
+  // Otherwise, trust primary MediaPipe handedness (especially for centered hands near chest)
+  if (labeledHandedness === "Left") {
+    return { leftHand: singleHand, rightHand: null };
+  } else {
+    return { leftHand: null, rightHand: singleHand };
+  }
+}
 
 /**
  * Extracts complete, normalized gesture features for a single recorded frame
@@ -462,28 +601,25 @@ export function extractFrameFeatures(
   const bodyContext = extractBodyContext(rawFrame.pose);
   const headFeatures = extractHeadFeatures(rawFrame.pose, bodyContext);
 
-  let leftHandData: SingleHandFeatures | null = null;
-  let rightHandData: SingleHandFeatures | null = null;
+  const assigned = resolveHandAssignment(rawFrame.hands, bodyContext);
 
-  if (rawFrame.hands && rawFrame.hands.length > 0) {
-    rawFrame.hands.forEach((hand) => {
-      if (hand.handedness === "Left") {
-        leftHandData = extractSingleHandFeatures(
-          hand.landmarks,
-          "Left",
-          bodyContext,
-          rawFrame.pose
-        );
-      } else if (hand.handedness === "Right") {
-        rightHandData = extractSingleHandFeatures(
-          hand.landmarks,
-          "Right",
-          bodyContext,
-          rawFrame.pose
-        );
-      }
-    });
-  }
+  const leftHandData: SingleHandFeatures | null = assigned.leftHand
+    ? extractSingleHandFeatures(
+        assigned.leftHand.landmarks,
+        "Left",
+        bodyContext,
+        rawFrame.pose
+      )
+    : null;
+
+  const rightHandData: SingleHandFeatures | null = assigned.rightHand
+    ? extractSingleHandFeatures(
+        assigned.rightHand.landmarks,
+        "Right",
+        bodyContext,
+        rawFrame.pose
+      )
+    : null;
 
   const twoHandFeatures = extractTwoHandFeatures(
     leftHandData,
