@@ -9,8 +9,10 @@ import {
   deleteCategory,
   canDeleteCategory,
   generateCategorySlug,
+  syncCategories,
 } from "@/lib/storage/categoryStorage";
 import { getLessons } from "@/lib/storage/lessonStorage";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
 import {
   Card,
   CardHeader,
@@ -42,6 +44,7 @@ export function CategoryManager() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [lessonCounts, setLessonCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState<boolean>(true);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   // Modal State
@@ -94,6 +97,20 @@ export function CategoryManager() {
       setLoading(false);
     }
   }, []);
+
+  const handleSyncCloud = async () => {
+    setIsSyncing(true);
+    try {
+      const result = await syncCategories();
+      const purgeMsg = result.purgedFromLocal > 0 ? `, ล้างรายการที่ถูกลบ: ${result.purgedFromLocal}` : "";
+      showNotification("success", `Sync หมวดหมู่กับ Supabase Database สำเร็จ (ดึงใหม่: ${result.downloadedFromCloud}${purgeMsg})`);
+      await loadData();
+    } catch {
+      showNotification("error", "เกิดข้อผิดพลาดในการ Sync กับ Cloud");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -305,16 +322,33 @@ export function CategoryManager() {
           <div className="bg-white border border-[#E2E8F0] px-4 py-2 rounded-xl text-xs shadow-xs font-medium text-[#475569]">
             เปิดใช้งาน: <span className="font-bold text-emerald-600">{totalActive}</span>
           </div>
+          <Badge variant={isSupabaseConfigured() ? "success" : "outline"}>
+            {isSupabaseConfigured() ? "☁️ Supabase Connected" : "💾 Local Storage Mode"}
+          </Badge>
         </div>
 
-        <Button
-          size="sm"
-          variant="amber"
-          className="font-semibold shadow-xs"
-          onClick={handleOpenAdd}
-        >
-          + เพิ่มหมวดหมู่ใหม่
-        </Button>
+        <div className="flex items-center gap-2.5">
+          {isSupabaseConfigured() && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleSyncCloud}
+              disabled={isSyncing}
+              className="text-xs font-semibold"
+            >
+              {isSyncing ? "กำลัง Sync..." : "☁️ Sync Cloud"}
+            </Button>
+          )}
+
+          <Button
+            size="sm"
+            variant="amber"
+            className="font-semibold shadow-xs"
+            onClick={handleOpenAdd}
+          >
+            + เพิ่มหมวดหมู่ใหม่
+          </Button>
+        </div>
       </div>
 
       {/* Search Filter Box */}

@@ -1,11 +1,18 @@
 import { Category } from "@/types";
 import { INITIAL_CATEGORIES } from "@/data/seedCategories";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
+import {
+  fetchCategoriesFromSupabase,
+  upsertCategoryToSupabase,
+  deleteCategoryFromSupabase,
+  syncCategoriesWithCloud,
+} from "@/lib/supabase/supabaseCategoryStorage";
 
 const CATEGORY_STORAGE_KEY = "tsl_categories";
 
 // In-memory fallback for SSR / non-browser / test environments
 let memoryCategories: Category[] = JSON.parse(JSON.stringify(INITIAL_CATEGORIES));
-
+let hasInitialCloudSynced = false;
 
 /**
  * Normalizes and parses raw stored category data
@@ -70,11 +77,28 @@ export function generateCategorySlug(name: string): string {
 
 /**
  * Retrieve all categories
+ * Reconciles with Supabase Database and falls back to local cache or seed categories
  */
 export async function getCategories(options?: {
   includeInactive?: boolean;
+  forceCloudSync?: boolean;
 }): Promise<Category[]> {
-  const categories = loadAllCategories();
+  let categories = loadAllCategories();
+
+  // Cloud sync if configured and forced or initial
+  if (isSupabaseConfigured() && (options?.forceCloudSync || !hasInitialCloudSynced)) {
+    try {
+      const cloudCats = await fetchCategoriesFromSupabase();
+      if (cloudCats.length > 0) {
+        categories = cloudCats;
+        persistCategories(cloudCats);
+        hasInitialCloudSynced = true;
+      }
+    } catch {
+      // fallback on network error
+    }
+  }
+
   const includeInactive = options?.includeInactive ?? false;
 
   return categories
@@ -86,7 +110,7 @@ export async function getCategories(options?: {
  * Retrieve a single category by its ID
  */
 export async function getCategoryById(id: string): Promise<Category | null> {
-  const categories = loadAllCategories();
+  const categories = await getCategories({ includeInactive: true });
   const found = categories.find((cat) => cat.id === id || cat.slug === id);
   return found ? { ...found } : null;
 }
@@ -144,6 +168,12 @@ export async function addCategory(
   existing.push(newCategory);
   persistCategories(existing);
 
+  if (isSupabaseConfigured()) {
+    upsertCategoryToSupabase(newCategory).catch((err) => {
+      console.warn("[categoryStorage] Cloud upsert warning:", err);
+    });
+  }
+
   return newCategory;
 }
 
@@ -192,6 +222,12 @@ export async function updateCategory(data: Category): Promise<Category> {
 
   existing[idx] = updated;
   persistCategories(existing);
+
+  if (isSupabaseConfigured()) {
+    upsertCategoryToSupabase(updated).catch((err) => {
+      console.warn("[categoryStorage] Cloud update warning:", err);
+    });
+  }
 
   return updated;
 }
@@ -250,7 +286,31 @@ export async function deleteCategory(
   }
 
   persistCategories(remaining);
+
+  if (isSupabaseConfigured()) {
+    deleteCategoryFromSupabase(id).catch((err) => {
+      console.warn("[categoryStorage] Cloud delete warning:", err);
+    });
+  }
+
   return { success: true };
+}
+
+/**
+ * Synchronize categories with Supabase Cloud
+ */
+export async function syncCategories(): Promise<{
+  syncedToCloud: number;
+  downloadedFromCloud: number;
+  purgedFromLocal: number;
+  allCategories: Category[];
+}> {
+  const local = loadAllCategories();
+  const syncResult = await syncCategoriesWithCloud(local, { authoritativeCloud: true });
+  if (syncResult.allCategories.length > 0) {
+    persistCategories(syncResult.allCategories);
+  }
+  return syncResult;
 }
 
 /**

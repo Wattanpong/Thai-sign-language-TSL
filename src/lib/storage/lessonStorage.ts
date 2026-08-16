@@ -2,12 +2,19 @@ import { Lesson, GestureType, DifficultyLevel } from "@/types";
 import { INITIAL_LESSONS } from "@/data/seedLessons";
 import { getCategoryById } from "./categoryStorage";
 import { clearReferences } from "./referenceStorage";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
+import {
+  fetchLessonsFromSupabase,
+  upsertLessonToSupabase,
+  deleteLessonFromSupabase,
+  syncLessonsWithCloud,
+} from "@/lib/supabase/supabaseLessonStorage";
 
 const LESSON_STORAGE_KEY = "tsl_lessons";
 
 // In-memory fallback for SSR / non-browser / test environments
 let memoryLessons: Lesson[] = JSON.parse(JSON.stringify(INITIAL_LESSONS));
-
+let hasInitialCloudSynced = false;
 
 /**
  * Normalizes and parses raw stored lesson data
@@ -72,11 +79,28 @@ export function generateLessonSlug(word: string): string {
 
 /**
  * Retrieve all lessons
+ * Reconciles with Supabase Database and falls back to local cache or seed lessons
  */
 export async function getLessons(options?: {
   includeInactive?: boolean;
+  forceCloudSync?: boolean;
 }): Promise<Lesson[]> {
-  const lessons = loadAllLessons();
+  let lessons = loadAllLessons();
+
+  // Cloud sync if configured and forced or initial
+  if (isSupabaseConfigured() && (options?.forceCloudSync || !hasInitialCloudSynced)) {
+    try {
+      const cloudLessons = await fetchLessonsFromSupabase();
+      if (cloudLessons.length > 0) {
+        lessons = cloudLessons;
+        persistLessons(cloudLessons);
+        hasInitialCloudSynced = true;
+      }
+    } catch {
+      // fallback on network error
+    }
+  }
+
   const includeInactive = options?.includeInactive ?? false;
 
   return lessons
@@ -88,7 +112,7 @@ export async function getLessons(options?: {
  * Retrieve a single lesson by its ID
  */
 export async function getLessonById(id: string): Promise<Lesson | null> {
-  const lessons = loadAllLessons();
+  const lessons = await getLessons({ includeInactive: true });
   const found = lessons.find((item) => item.id === id);
   return found ? { ...found } : null;
 }
@@ -100,7 +124,7 @@ export async function getLessonsByCategoryId(
   categoryId: string,
   includeInactive = false
 ): Promise<Lesson[]> {
-  const lessons = loadAllLessons();
+  const lessons = await getLessons({ includeInactive });
 
   return lessons
     .filter(
@@ -176,6 +200,12 @@ export async function addLesson(
   existing.push(newLesson);
   persistLessons(existing);
 
+  if (isSupabaseConfigured()) {
+    upsertLessonToSupabase(newLesson).catch((err) => {
+      console.warn("[lessonStorage] Cloud upsert warning:", err);
+    });
+  }
+
   return newLesson;
 }
 
@@ -238,6 +268,12 @@ export async function updateLesson(data: Lesson): Promise<Lesson> {
   existing[idx] = updated;
   persistLessons(existing);
 
+  if (isSupabaseConfigured()) {
+    upsertLessonToSupabase(updated).catch((err) => {
+      console.warn("[lessonStorage] Cloud update warning:", err);
+    });
+  }
+
   return updated;
 }
 
@@ -259,7 +295,30 @@ export async function deleteLesson(id: string): Promise<boolean> {
   // CASCADE CLEANUP: Clear references associated with this lesson
   await clearReferences(id);
 
+  if (isSupabaseConfigured()) {
+    deleteLessonFromSupabase(id).catch((err) => {
+      console.warn("[lessonStorage] Cloud delete warning:", err);
+    });
+  }
+
   return true;
+}
+
+/**
+ * Synchronize lessons with Supabase Cloud
+ */
+export async function syncLessons(): Promise<{
+  syncedToCloud: number;
+  downloadedFromCloud: number;
+  purgedFromLocal: number;
+  allLessons: Lesson[];
+}> {
+  const local = loadAllLessons();
+  const syncResult = await syncLessonsWithCloud(local, { authoritativeCloud: true });
+  if (syncResult.allLessons.length > 0) {
+    persistLessons(syncResult.allLessons);
+  }
+  return syncResult;
 }
 
 /**
