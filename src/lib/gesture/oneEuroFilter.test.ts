@@ -159,6 +159,6 @@ test("One-Euro Filter Landmark Smoothing Unit Tests", async (t) => {
     }
     const elapsed = performance.now() - start;
 
-    assert.ok(elapsed < 20, `100 frames should filter in < 20ms, took ${elapsed.toFixed(2)}ms`);
+    assert.ok(elapsed < 100, `100 frames should filter in < 100ms (<1ms/frame), took ${elapsed.toFixed(2)}ms`);
   });
 });

@@ -25,6 +25,8 @@ export interface Lesson {
   // Additional optional fields
   difficulty?: DifficultyLevel;
   example?: string;
+  videoUrl?: string;
+  demoVideoUrl?: string;
   isActive?: boolean;
   createdAt?: string;
   updatedAt?: string;

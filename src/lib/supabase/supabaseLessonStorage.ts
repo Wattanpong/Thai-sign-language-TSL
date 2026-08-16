@@ -9,6 +9,7 @@ export interface SupabaseLessonRow {
   type: string;
   description: string;
   difficulty: string;
+  demo_video_url?: string;
 }
 
 export interface SyncLessonsResult {
@@ -21,7 +22,7 @@ export interface SyncLessonsResult {
 
 /**
  * Converts domain Lesson object to Supabase database row matching schema:
- * lessons: id (text), category_id (text), word (text), type (text), description (text), difficulty (text)
+ * lessons: id (text), category_id (text), word (text), type (text), description (text), difficulty (text), demo_video_url (text)
  */
 export function lessonToRow(lesson: Lesson): SupabaseLessonRow {
   return {
@@ -31,6 +32,7 @@ export function lessonToRow(lesson: Lesson): SupabaseLessonRow {
     type: lesson.gestureType,
     description: lesson.description || "",
     difficulty: lesson.difficulty || "beginner",
+    demo_video_url: lesson.videoUrl || lesson.demoVideoUrl || "",
   };
 }
 
@@ -40,6 +42,9 @@ export function lessonToRow(lesson: Lesson): SupabaseLessonRow {
 export function rowToLesson(row: Record<string, unknown>): Lesson {
   const gestureType = (row.type || row.gesture_type || row.gestureType || "dynamic") as GestureType;
   const rawOrder = row.order ?? row.display_order ?? row.sort_order ?? row.seq ?? 0;
+  const rawVideo = row.demo_video_url || row.demoVideoUrl || row.video_url || row.videoUrl;
+  const videoUrl = rawVideo ? String(rawVideo).trim() : undefined;
+
   return {
     id: String(row.id),
     categoryId: String(row.category_id || row.categoryId),
@@ -49,6 +54,8 @@ export function rowToLesson(row: Record<string, unknown>): Lesson {
     difficulty: (row.difficulty || "beginner") as DifficultyLevel,
     order: Number(rawOrder) || 1,
     example: row.example ? String(row.example) : undefined,
+    videoUrl: videoUrl && videoUrl.length > 0 ? videoUrl : undefined,
+    demoVideoUrl: videoUrl && videoUrl.length > 0 ? videoUrl : undefined,
     isActive:
       row.is_active !== undefined
         ? Boolean(row.is_active)

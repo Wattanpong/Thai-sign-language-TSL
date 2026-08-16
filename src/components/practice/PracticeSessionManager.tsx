@@ -621,6 +621,57 @@ export function PracticeSessionManager({
     </div>
   );
 
+  const renderDemoVideoCard = () => {
+    const videoSrc = selectedLesson.videoUrl || selectedLesson.demoVideoUrl;
+
+    return (
+      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E2E8F0] shadow-xs space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-[#0F172A]">📹 วิดีโอตัวอย่างท่าทาง</span>
+            <Badge variant="tag">Demo Sign</Badge>
+          </div>
+          {videoSrc ? (
+            <Badge variant="success" className="text-[10px]">
+              มีคลิปต้นแบบ
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="text-[10px]">
+              คำอธิบายท่าทาง
+            </Badge>
+          )}
+        </div>
+
+        {videoSrc ? (
+          <div className="relative rounded-xl overflow-hidden bg-slate-950 aspect-video max-h-[220px] flex items-center justify-center border border-slate-200 shadow-inner">
+            <video
+              key={videoSrc}
+              src={videoSrc}
+              controls
+              loop
+              playsInline
+              className="w-full h-full object-contain"
+            />
+          </div>
+        ) : (
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-1.5 flex flex-col items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-sky-50 text-[#0284C7] flex items-center justify-center text-lg font-bold">
+              🖐️
+            </div>
+            <div className="space-y-0.5">
+              <span className="text-xs font-bold text-[#0F172A] block">
+                ยังไม่มีคลิปวิดีโอตัวอย่าง
+              </span>
+              <p className="text-[11px] text-[#64748B] max-w-xs">
+                สามารถศึกษาลักษณะท่าทาง &quot;{selectedLesson.word}&quot; ได้จากคำอธิบายและแนวทางการวางมือด้านล่าง
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderLessonGuideCard = () => (
     <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E2E8F0] shadow-xs space-y-4">
       <div className="flex items-center justify-between">
@@ -685,7 +736,22 @@ export function PracticeSessionManager({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
-      {/* LEFT / MAIN COLUMN (Compact Camera & Interactive Practice Area) */}
+      {/* LEFT COLUMN: Demo Video Preview, Word Selector & Lesson Guidance */}
+      <div className="lg:col-span-5 xl:col-span-5 space-y-4 w-full">
+        {/* 1. Demo Video Preview Card (Top of Left Column) */}
+        {renderDemoVideoCard()}
+
+        {/* 2. Word Selector Card */}
+        {renderWordSelectorCard()}
+
+        {/* 3. Lesson Guidance Card */}
+        {renderLessonGuideCard()}
+
+        {/* 4. Collapsible 3-Step Guide */}
+        <PracticeGuide />
+      </div>
+
+      {/* RIGHT COLUMN: Live Camera, Practice Controls & Evaluation Results */}
       <div className="lg:col-span-7 xl:col-span-7 space-y-4 min-w-0">
         {/* 1. Practice Header Banner */}
         <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
@@ -718,19 +784,22 @@ export function PracticeSessionManager({
             <span>{currentStepName}</span>
           </div>
           <span className="text-[11px] text-[#0284C7] font-normal hidden sm:inline">
-            {currentStepNumber === 1 && "เลือกคำศัพท์ด้านข้าง/ล่าง แล้วกดปุ่มเปิดกล้อง"}
+            {currentStepNumber === 1 && "เลือกคำศัพท์ด้านซ้าย แล้วกดปุ่มเปิดกล้อง"}
             {currentStepNumber === 2 && "ทำท่าทางตามตัวอย่าง แล้วกดหยุดเพื่อตรวจคะแนน"}
             {currentStepNumber === 3 && "ดูคะแนนความถูกต้องแยกตามส่วนและคำแนะนำ"}
           </span>
         </div>
 
-        {/* Word Selector on Mobile/Tablet (< lg) */}
-        <div className="block lg:hidden space-y-4">
-          {renderWordSelectorCard()}
-          {renderLessonGuideCard()}
-        </div>
+        {/* 3. Evaluation Result Panel (Appears at top of right column when completed) */}
+        {sessionState === "completed" && evaluationResult && (
+          <PracticeResultCard
+            result={evaluationResult}
+            word={selectedLesson.word}
+            onReset={resetSession}
+          />
+        )}
 
-        {/* 3. Top Camera Controls & Status Bar */}
+        {/* 4. Top Camera Controls & Status Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs">
           <div className="flex items-center gap-2.5">
             <div className="flex items-center gap-2">
@@ -853,12 +922,12 @@ export function PracticeSessionManager({
           </div>
         )}
 
-        {/* 4. Compact Main Viewport & Video / Canvas Area (Max Height constrained for balanced layout) */}
+        {/* 5. Compact Main Viewport & Video / Canvas Area */}
         <Card className="overflow-hidden p-0 border-[#E2E8F0] shadow-sm rounded-2xl bg-slate-950">
           <div
-            className={`relative w-full max-h-[360px] sm:max-h-[400px] xl:max-h-[420px] aspect-video bg-slate-950 rounded-2xl overflow-hidden flex items-center justify-center transition-all duration-300 ${
+            className={`relative w-full max-h-[360px] sm:max-h-[380px] aspect-video bg-slate-950 rounded-2xl overflow-hidden flex items-center justify-center transition-all duration-300 ${
               cameraState === "ready" || cameraState === "requesting"
-                ? "h-[280px] sm:h-[360px] lg:h-[380px]"
+                ? "h-[280px] sm:h-[340px] lg:h-[360px]"
                 : "h-[180px] sm:h-[220px]"
             }`}
           >
@@ -877,7 +946,7 @@ export function PracticeSessionManager({
               className="absolute inset-0 h-full w-full pointer-events-none z-10"
             />
 
-            {/* Real-time Live Practice HUD (Clean pinned top bar inside viewport) */}
+            {/* Real-time Live Practice HUD */}
             {sessionState === "practicing" && liveFeedback && (
               <div className="absolute top-2.5 inset-x-2.5 sm:top-3 sm:inset-x-3 z-20 flex flex-col gap-1.5 pointer-events-none animate-fadeIn">
                 <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-900/85 backdrop-blur-md border border-white/15 shadow-md text-white">
@@ -940,7 +1009,7 @@ export function PracticeSessionManager({
               <div className="flex flex-col items-center justify-center text-center p-6 text-slate-400 space-y-2">
                 <div className="h-11 w-11 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-[#0EA5E9]">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2z" />
                   </svg>
                 </div>
                 <div className="space-y-0.5">
@@ -956,7 +1025,7 @@ export function PracticeSessionManager({
           </div>
         </Card>
 
-        {/* 5. Practice Action Controls Bar (Prominent Outside Video Feed) */}
+        {/* 6. Practice Action Controls Bar (Prominent Outside Video Feed) */}
         {cameraState === "ready" && (
           <div className="p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="w-full sm:w-auto flex items-center gap-3">
@@ -1027,7 +1096,7 @@ export function PracticeSessionManager({
           </div>
         )}
 
-        {/* 6. Live AI Component Scores & Real-Time Finger Feedback */}
+        {/* 7. Live AI Component Scores & Real-Time Finger Feedback */}
         {sessionState === "practicing" && liveFeedback && (
           <div className="p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs space-y-3 animate-fadeIn">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1166,7 +1235,7 @@ export function PracticeSessionManager({
           </div>
         )}
 
-        {/* Real-World Diagnostic & Telemetry Panel (STEP 7E) */}
+        {/* Real-World Diagnostic & Telemetry Panel */}
         {isDebugMode && showDebug && (
           <PracticeDiagnosticPanel
             stats={debugStats}
@@ -1181,22 +1250,6 @@ export function PracticeSessionManager({
             lessonId={selectedLesson.id}
           />
         )}
-
-        {/* Practice Results View (Appears on completed analysis) */}
-        {sessionState === "completed" && evaluationResult && (
-          <PracticeResultCard
-            result={evaluationResult}
-            word={selectedLesson.word}
-            onReset={resetSession}
-          />
-        )}
-      </div>
-
-      {/* RIGHT / SIDEBAR COLUMN (Word Selector & Lesson Guidance) */}
-      <div className="hidden lg:block lg:sticky lg:top-20 lg:col-span-5 xl:col-span-5 space-y-4 w-full">
-        {renderWordSelectorCard()}
-        {renderLessonGuideCard()}
-        <PracticeGuide />
       </div>
     </div>
   );

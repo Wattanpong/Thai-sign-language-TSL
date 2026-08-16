@@ -91,6 +91,52 @@ export async function uploadReferenceToSupabase(
 }
 
 /**
+ * Uploads an optional demo video file (.mp4, .webm, .mov) to Supabase Storage bucket
+ */
+export async function uploadDemoVideoToSupabase(
+  file: File,
+  lessonId: string
+): Promise<SupabaseUploadResult> {
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    return {
+      success: false,
+      error: "Supabase client is not configured",
+    };
+  }
+
+  try {
+    const ext = file.name.split(".").pop() || "mp4";
+    const path = `demos/${lessonId}_${Date.now()}.${ext}`;
+
+    const { data, error } = await supabase.storage
+      .from(SUPABASE_BUCKET_NAME)
+      .upload(path, file, {
+        contentType: file.type || "video/mp4",
+        upsert: true,
+      });
+
+    if (error) {
+      console.warn(`[Supabase Storage] Demo video upload error for ${path}:`, error.message);
+      return { success: false, error: error.message };
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from(SUPABASE_BUCKET_NAME)
+      .getPublicUrl(path);
+
+    return {
+      success: true,
+      path: data?.path || path,
+      url: publicUrlData?.publicUrl,
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Failed uploading demo video";
+    return { success: false, error: msg };
+  }
+}
+
+/**
  * Fetches all ReferenceGestures for a given lessonId from Supabase Storage
  */
 export async function fetchReferencesFromSupabase(

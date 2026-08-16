@@ -12,6 +12,7 @@ import {
   syncLessons,
 } from "@/lib/storage/lessonStorage";
 import { getReferencesByLessonId } from "@/lib/storage/referenceStorage";
+import { uploadDemoVideoToSupabase } from "@/lib/supabase/supabaseReferenceStorage";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import {
   Card,
@@ -31,6 +32,7 @@ interface LessonFormData {
   gestureType: GestureType;
   difficulty: DifficultyLevel;
   example: string;
+  videoUrl: string;
   order: number;
   isActive: boolean;
 }
@@ -42,6 +44,7 @@ const initialLessonFormData: LessonFormData = {
   gestureType: "dynamic",
   difficulty: "beginner",
   example: "",
+  videoUrl: "",
   order: 1,
   isActive: true,
 };
@@ -198,6 +201,8 @@ export function LessonManager() {
   }, []);
 
 
+  const [isUploadingVideo, setIsUploadingVideo] = useState<boolean>(false);
+
   // Open Modal for Add
   const handleOpenAdd = () => {
     setFormMode("add");
@@ -211,6 +216,7 @@ export function LessonManager() {
       gestureType: "dynamic",
       difficulty: "beginner",
       example: "",
+      videoUrl: "",
       order: maxOrder + 1,
       isActive: true,
     });
@@ -229,11 +235,34 @@ export function LessonManager() {
       gestureType: lesson.gestureType,
       difficulty: lesson.difficulty || "beginner",
       example: lesson.example || "",
+      videoUrl: lesson.videoUrl || lesson.demoVideoUrl || "",
       order: lesson.order ?? 1,
       isActive: lesson.isActive !== false,
     });
     setFormError(null);
     setIsFormOpen(true);
+  };
+
+  // Upload video file directly from modal
+  const handleVideoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingVideo(true);
+      const targetId = editingLesson?.id || formData.word.trim() || "demo";
+      const res = await uploadDemoVideoToSupabase(file, targetId);
+      if (res.success && res.url) {
+        setFormData((prev) => ({ ...prev, videoUrl: res.url || "" }));
+        showNotification("success", "อัปโหลดวิดีโอตัวอย่างขึ้น Cloud สำเร็จ");
+      } else {
+        showNotification("error", res.error || "ไม่สามารถอัปโหลดวิดีโอได้");
+      }
+    } catch {
+      showNotification("error", "เกิดข้อผิดพลาดในการอัปโหลดวิดีโอ");
+    } finally {
+      setIsUploadingVideo(false);
+    }
   };
 
   // Open Delete Dialog
@@ -264,6 +293,7 @@ export function LessonManager() {
     const word = formData.word.trim();
     const categoryId = formData.categoryId.trim();
     const description = formData.description.trim();
+    const videoUrl = formData.videoUrl.trim() || undefined;
 
     if (!word) {
       setFormError("กรุณากรอกคำศัพท์");
@@ -290,6 +320,8 @@ export function LessonManager() {
           gestureType: formData.gestureType,
           difficulty: formData.difficulty,
           example: formData.example.trim() || undefined,
+          videoUrl,
+          demoVideoUrl: videoUrl,
           order: formData.order,
           isActive: formData.isActive,
         });
@@ -303,6 +335,8 @@ export function LessonManager() {
           gestureType: formData.gestureType,
           difficulty: formData.difficulty,
           example: formData.example.trim() || undefined,
+          videoUrl,
+          demoVideoUrl: videoUrl,
           order: formData.order,
           isActive: formData.isActive,
         });
@@ -728,6 +762,54 @@ export function LessonManager() {
                     <option value="advanced">ระดับสูง (Advanced)</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Demo Video URL (Optional) */}
+              <div className="space-y-2 p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-[#0F172A]">
+                    วิดีโอตัวอย่างท่าทาง (Demo Video - Optional)
+                  </label>
+                  <Badge variant="outline" className="text-[10px]">
+                    มีหรือไม่มีก็ได้
+                  </Badge>
+                </div>
+
+                <div className="flex gap-2">
+                  <Input
+                    name="videoUrl"
+                    value={formData.videoUrl}
+                    onChange={handleInputChange}
+                    placeholder="https://... หรืออัปโหลดไฟล์วิดีโอ .mp4"
+                    className="text-xs flex-1"
+                  />
+
+                  {isSupabaseConfigured() && (
+                    <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white border border-[#CBD5E1] hover:bg-slate-100 cursor-pointer shrink-0 transition-colors">
+                      <span>{isUploadingVideo ? "⏳ กำลังอัปโหลด..." : "📁 อัปโหลดวิดีโอ"}</span>
+                      <input
+                        type="file"
+                        accept="video/mp4,video/webm,video/quicktime"
+                        onChange={handleVideoFileChange}
+                        disabled={isUploadingVideo}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+
+                {formData.videoUrl && (
+                  <div className="pt-1 flex items-center justify-between text-[11px] text-[#64748B]">
+                    <span className="truncate max-w-[280px]">✓ แนบวิดีโอ: {formData.videoUrl}</span>
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, videoUrl: "" }))}
+                      className="text-rose-500 hover:text-rose-700 font-semibold cursor-pointer"
+                    >
+                      ลบวิดีโอออก
+                    </button>
+                  </div>
+                )}
               </div>
 
 

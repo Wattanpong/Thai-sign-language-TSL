@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { PracticeEvaluationResult } from "@/lib/practice/practiceEngine";
-import { Card, Button, Badge } from "@/components/ui";
+import { Button, Badge } from "@/components/ui";
 
 interface PracticeResultCardProps {
   result: PracticeEvaluationResult;
@@ -21,27 +21,27 @@ export function PracticeResultCard({
     if (val >= 85) {
       return {
         label: "ยอดเยี่ยม (Excellent)",
-        color: "text-emerald-700 bg-emerald-50 border-emerald-200",
+        shortLabel: "ผ่านเกณฑ์ดีเยี่ยม",
         badge: "success" as const,
       };
     }
     if (val >= 70) {
       return {
         label: "ดีมาก (Good)",
-        color: "text-blue-700 bg-blue-50 border-blue-200",
+        shortLabel: "ผ่านเกณฑ์",
         badge: "default" as const,
       };
     }
     if (val >= 50) {
       return {
         label: "พอใช้ (Fair)",
-        color: "text-amber-700 bg-amber-50 border-amber-200",
+        shortLabel: "พอใช้",
         badge: "warning" as const,
       };
     }
     return {
-      label: "ควรฝึกฝนเพิ่มเติม (Needs Practice)",
-      color: "text-red-700 bg-red-50 border-red-200",
+      label: "ควรฝึกฝนเพิ่มเติม",
+      shortLabel: "ควรฝึกเพิ่ม",
       badge: "outline" as const,
     };
   };
@@ -51,156 +51,162 @@ export function PracticeResultCard({
   const refDurationSec = (referenceSequence.durationMs / 1000).toFixed(1);
 
   const breakdownItems = [
-    { label: "รูปมือ (Hand Shape)", score: score.handShapeScore, weight: "20%" },
-    { label: "มุมข้อนิ้ว (Finger Angles)", score: score.fingerAngleScore, weight: "15%" },
-    { label: "การงอนิ้ว (Finger Curls)", score: score.fingerCurlScore, weight: "15%" },
-    { label: "ทิศทางฝ่ามือ (Palm Orientation)", score: score.palmOrientationScore, weight: "15%" },
-    { label: "ตำแหน่งมือ (Hand Position)", score: score.handPositionScore, weight: "15%" },
-    { label: "ความสัมพันธ์ 2 มือ (Two-Hand)", score: score.twoHandScore, weight: "15%" },
-    { label: "บริบทศีรษะ/ลำตัว (Body Context)", score: score.bodyContextScore, weight: "5%" },
+    { label: "รูปมือ (Shape)", score: score.handShapeScore, weight: "20%" },
+    { label: "มุมข้อนิ้ว (Angles)", score: score.fingerAngleScore, weight: "15%" },
+    { label: "การงอนิ้ว (Curls)", score: score.fingerCurlScore, weight: "15%" },
+    { label: "ทิศทางมือ (Palm)", score: score.palmOrientationScore, weight: "15%" },
+    { label: "ตำแหน่งมือ (Pos)", score: score.handPositionScore, weight: "15%" },
+    { label: "ความสัมพันธ์ 2 มือ", score: score.twoHandScore, weight: "15%" },
+    { label: "บริบทลำตัว (Pose)", score: score.bodyContextScore, weight: "5%" },
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Overall Score Header Card */}
-      <Card className="p-6 sm:p-8 bg-white border border-[#E2E8F0] shadow-sm space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#F1F5F9] pb-6">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Badge variant="tag">ผลการประเมินท่าทาง AI</Badge>
-              <Badge variant={grade.badge}>{grade.label}</Badge>
-            </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-[#0F172A]">
-              การฝึกฝนคำว่า &quot;{word}&quot;
-            </h3>
+    <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E2E8F0] shadow-sm space-y-3.5 animate-fadeIn">
+      {/* 1. Header with Word & Reset Button */}
+      <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-[#64748B]">ผลประเมินคำว่า:</span>
+            <span className="text-sm font-black text-[#0F172A]">&quot;{word}&quot;</span>
           </div>
-
-          <Button variant="amber" size="md" onClick={onReset} className="font-semibold shadow-xs">
-            ↻ ฝึกฝนใหม่อีกครั้ง (Try Again)
-          </Button>
-        </div>
-
-        {/* Score & Quick Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-5 rounded-2xl bg-gradient-to-br from-[#0F172A] to-[#1E293B] text-white flex flex-col justify-center items-center text-center shadow-xs">
-            <span className="text-xs uppercase tracking-wider text-slate-300 font-medium mb-1">
-              คะแนนความถูกต้องรวม
-            </span>
-            <div className="text-4xl sm:text-5xl font-black tracking-tight text-[#38BDF8]">
-              {score.overallScore}
-              <span className="text-xl font-normal text-slate-400">/100</span>
-            </div>
-
-          </div>
-
-          <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col justify-center">
-            <span className="text-xs text-[#64748B] font-medium mb-1">
-              ระดับความเชื่อมั่นของ AI
-            </span>
-            <div className="text-2xl font-bold text-[#0F172A]">
-              {Math.round(score.confidence * 100)}%
-            </div>
-            <span className="text-[11px] text-[#94A3B8] mt-0.5">
-              ประเมินจากความสมบูรณ์ของ Landmark
-            </span>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col justify-center">
-            <span className="text-xs text-[#64748B] font-medium mb-1">
-              ข้อมูลการเคลื่อนไหว (DTW Frames)
-            </span>
-            <div className="text-2xl font-bold text-[#0F172A]">
-              {score.matchedFrames} <span className="text-sm font-normal text-[#64748B]">เฟรม</span>
-            </div>
-            <span className="text-[11px] text-[#94A3B8] mt-0.5">
-              เวลา: {userDurationSec}s (ต้นแบบ: {refDurationSec}s)
+          <div className="flex items-center gap-1.5">
+            <Badge variant={grade.badge} className="text-[11px] font-bold">
+              {grade.shortLabel}
+            </Badge>
+            <span className="text-[11px] text-[#64748B]">
+              (เกณฑ์ $\ge 70\%$)
             </span>
           </div>
         </div>
 
-        {/* Feature Breakdown Progress Bars */}
-        <div className="space-y-4 pt-2">
-          <h4 className="font-bold text-sm text-[#0F172A]">
-            รายละเอียดคะแนนแต่ละองค์ประกอบ (Feature Breakdown)
-          </h4>
+        <Button
+          variant="amber"
+          size="sm"
+          onClick={onReset}
+          className="font-bold shadow-xs text-xs px-3.5 py-1.5 h-8 shrink-0 rounded-xl"
+        >
+          ↻ ฝึกใหม่อีกครั้ง
+        </Button>
+      </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
-            {breakdownItems.map((item) => (
-              <div key={item.label} className="space-y-1.5 p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-[#0F172A]">{item.label}</span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-[#64748B]">({item.weight})</span>
-                    <span
-                      className={`font-bold ${
-                        item.score >= 80
-                          ? "text-emerald-700"
-                          : item.score >= 60
-                          ? "text-amber-700"
-                          : "text-red-700"
-                      }`}
-                    >
-                      {item.score}
-                    </span>
-                  </div>
-                </div>
+      {/* 2. Compact Score Cards Grid (Single Horizontal Row) */}
+      <div className="grid grid-cols-3 gap-2 text-center">
+        <div className="p-2.5 rounded-xl bg-gradient-to-br from-[#0F172A] to-[#1E293B] text-white flex flex-col justify-center items-center shadow-xs">
+          <span className="text-[10px] uppercase tracking-wider text-slate-300 font-medium">
+            คะแนนรวม
+          </span>
+          <div className="text-2xl sm:text-3xl font-black text-[#38BDF8] leading-tight">
+            {score.overallScore}
+            <span className="text-xs font-normal text-slate-400">/100</span>
+          </div>
+        </div>
 
-                <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      item.score >= 80
-                        ? "bg-emerald-500"
-                        : item.score >= 60
-                        ? "bg-amber-400"
-                        : "bg-red-500"
-                    }`}
-                    style={{ width: `${item.score}%` }}
-                  />
-                </div>
+        <div className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col justify-center items-center">
+          <span className="text-[10px] text-[#64748B] font-medium">
+            ความเชื่อมั่น AI
+          </span>
+          <div className="text-lg sm:text-xl font-bold text-[#0F172A] leading-tight">
+            {Math.round(score.confidence * 100)}%
+          </div>
+          <span className="text-[9px] text-[#94A3B8]">Landmark Quality</span>
+        </div>
+
+        <div className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col justify-center items-center">
+          <span className="text-[10px] text-[#64748B] font-medium">
+            เวลา / เฟรม
+          </span>
+          <div className="text-sm sm:text-base font-bold text-[#0F172A] leading-tight">
+            {userDurationSec}s
+          </div>
+          <span className="text-[9px] text-[#94A3B8]">
+            {score.matchedFrames}f (ต้นแบบ {refDurationSec}s)
+          </span>
+        </div>
+      </div>
+
+      {/* 3. Feature Breakdown Mini Bars Grid (2 Columns) */}
+      <div className="space-y-1.5 pt-1">
+        <div className="flex items-center justify-between text-xs font-bold text-[#0F172A]">
+          <span>คะแนนย่อย 7 มิติ (Feature Breakdown):</span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-1.5">
+          {breakdownItems.map((item) => (
+            <div
+              key={item.label}
+              className="p-1.5 sm:p-2 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] space-y-1"
+            >
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-[#475569] truncate font-medium max-w-[90px] sm:max-w-[110px]" title={item.label}>
+                  {item.label}
+                </span>
+                <span
+                  className={`font-black ${
+                    item.score >= 80
+                      ? "text-emerald-700"
+                      : item.score >= 60
+                      ? "text-amber-700"
+                      : "text-red-700"
+                  }`}
+                >
+                  {item.score}%
+                </span>
+              </div>
+              <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-300 ${
+                    item.score >= 80
+                      ? "bg-emerald-500"
+                      : item.score >= 60
+                      ? "bg-amber-400"
+                      : "bg-rose-500"
+                  }`}
+                  style={{ width: `${item.score}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 4. Actionable AI Feedback Section */}
+      <div className="space-y-1.5 pt-1 border-t border-slate-100">
+        <div className="flex items-center justify-between text-xs font-bold text-[#0F172A]">
+          <span className="flex items-center gap-1">
+            <span>💡 คำแนะนำจาก AI:</span>
+          </span>
+          <span className="text-[11px] font-normal text-[#64748B]">
+            {score.feedback.length} ข้อ
+          </span>
+        </div>
+
+        {score.feedback.length === 0 ? (
+          <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+            <span className="text-sm">✓</span>
+            <span className="font-medium">ยอดเยี่ยมมาก! ท่าทางและการเคลื่อนไหวตรงกับต้นแบบอย่างสมบูรณ์</span>
+          </div>
+        ) : (
+          <div className="space-y-1.5 max-h-[140px] overflow-y-auto pr-1">
+            {score.feedback.map((fb, idx) => (
+              <div
+                key={idx}
+                className={`p-2 rounded-xl border text-xs flex items-start gap-2 ${
+                  fb.severity === "error"
+                    ? "bg-red-50/90 border-red-200 text-red-900"
+                    : fb.severity === "warning"
+                    ? "bg-amber-50/90 border-amber-200 text-amber-900"
+                    : "bg-blue-50/90 border-blue-200 text-blue-900"
+                }`}
+              >
+                <span className="font-bold shrink-0 text-xs">
+                  {fb.severity === "error" ? "⚠️" : fb.severity === "warning" ? "⚡" : "ℹ️"}
+                </span>
+                <p className="font-medium leading-tight flex-1">{fb.message}</p>
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Actionable Thai Feedback Section */}
-        <div className="space-y-3 pt-2">
-          <h4 className="font-bold text-sm text-[#0F172A] flex items-center gap-2">
-            <span>คำแนะนำเฉพาะจุดจาก AI (Actionable Feedback)</span>
-            <span className="text-xs font-normal text-[#64748B]">
-              ({score.feedback.length} ข้อความ)
-            </span>
-          </h4>
-
-          {score.feedback.length === 0 ? (
-            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
-              <span className="text-base">✓</span>
-              <span>ยอดเยี่ยมมาก! ท่าทางและการเคลื่อนไหวตรงกับต้นแบบอย่างสมบูรณ์แบบ</span>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {score.feedback.map((fb, idx) => (
-                <div
-                  key={idx}
-                  className={`p-3.5 rounded-xl border text-xs flex items-start gap-2.5 ${
-                    fb.severity === "error"
-                      ? "bg-red-50/80 border-red-200 text-red-900"
-                      : fb.severity === "warning"
-                      ? "bg-amber-50/80 border-amber-200 text-amber-900"
-                      : "bg-blue-50/80 border-blue-200 text-blue-900"
-                  }`}
-                >
-                  <span className="font-bold shrink-0 mt-0.5">
-                    {fb.severity === "error" ? "⚠️" : fb.severity === "warning" ? "⚡" : "ℹ️"}
-                  </span>
-                  <div className="space-y-0.5 flex-1">
-                    <p className="font-semibold leading-relaxed">{fb.message}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </Card>
+        )}
+      </div>
     </div>
   );
 }
