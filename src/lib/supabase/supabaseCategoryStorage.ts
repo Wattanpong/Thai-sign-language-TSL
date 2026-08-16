@@ -1,47 +1,50 @@
 import { Category } from "@/types";
+import { INITIAL_CATEGORIES } from "@/data/seedCategories";
 import { getSupabaseClient, isSupabaseConfigured } from "./client";
 
 export interface SupabaseCategoryRow {
   id: string;
-  name: string;
-  slug: string;
+  title: string;
   description: string;
-  icon?: string | null;
-  order: number;
-  is_active: boolean;
-  created_at?: string;
-  updated_at?: string;
+  icon: string | null;
+  level: string;
+}
+
+export interface SyncCategoriesResult {
+  syncedToCloud: number;
+  downloadedFromCloud: number;
+  purgedFromLocal: number;
+  allCategories: Category[];
+  error?: string;
 }
 
 /**
- * Converts domain Category object to Supabase database row
+ * Converts domain Category object to Supabase database row matching schema:
+ * categories: id (text), title (text), description (text), icon (text), level (text)
  */
 export function categoryToRow(cat: Category): SupabaseCategoryRow {
   return {
     id: cat.id,
-    name: cat.name,
-    slug: cat.slug || cat.id,
+    title: cat.name,
     description: cat.description || "",
     icon: cat.icon || null,
-    order: cat.order ?? 0,
-    is_active: cat.isActive !== false,
-    created_at: cat.createdAt || new Date().toISOString(),
-    updated_at: cat.updatedAt || new Date().toISOString(),
+    level: "beginner",
   };
 }
 
 /**
- * Converts Supabase database row to domain Category object (handles snake_case and camelCase)
+ * Converts Supabase database row to domain Category object (handles title/name, level, etc.)
  */
 export function rowToCategory(row: Record<string, unknown>): Category {
+  const name = String(row.title || row.name || row.id);
   const rawOrder = row.order ?? row.display_order ?? row.sort_order ?? row.seq ?? 0;
   return {
     id: String(row.id),
-    name: String(row.name),
+    name,
     slug: String(row.slug || row.id),
     description: row.description ? String(row.description) : "",
     icon: row.icon ? String(row.icon) : undefined,
-    order: Number(rawOrder) || 0,
+    order: Number(rawOrder) || 1,
     isActive:
       row.is_active !== undefined
         ? Boolean(row.is_active)
@@ -145,6 +148,38 @@ export async function deleteCategoryFromSupabase(
 }
 
 /**
+ * Pushes default seed categories to Supabase Database
+ */
+export async function pushSeedToSupabase(): Promise<{
+  success: boolean;
+  pushedCount: number;
+  error?: string;
+}> {
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    return { success: false, pushedCount: 0, error: "Supabase client not configured" };
+  }
+
+  try {
+    const rows = INITIAL_CATEGORIES.map(categoryToRow);
+    const { error } = await supabase
+      .from("categories")
+      .upsert(rows, { onConflict: "id" });
+
+    if (error) {
+      console.error("[Supabase Database] pushSeedToSupabase categories error:", error.message);
+      return { success: false, pushedCount: 0, error: error.message };
+    }
+
+    return { success: true, pushedCount: INITIAL_CATEGORIES.length };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Unknown error pushing seed categories";
+    console.error("[Supabase Database] pushSeedToSupabase categories failed:", msg);
+    return { success: false, pushedCount: 0, error: msg };
+  }
+}
+
+/**
  * Reconciles local categories with cloud categories (identifying stale items to purge and new ones)
  */
 export function reconcileCategoriesWithCloud(
@@ -185,12 +220,7 @@ export function reconcileCategoriesWithCloud(
 export async function syncCategoriesWithCloud(
   localCategories: Category[],
   options: { authoritativeCloud?: boolean } = { authoritativeCloud: true }
-): Promise<{
-  syncedToCloud: number;
-  downloadedFromCloud: number;
-  purgedFromLocal: number;
-  allCategories: Category[];
-}> {
+): Promise<SyncCategoriesResult> {
   if (!isSupabaseConfigured()) {
     return {
       syncedToCloud: 0,
@@ -201,7 +231,33 @@ export async function syncCategoriesWithCloud(
   }
 
   try {
-    const cloudCategories = await fetchCategoriesFromSupabase();
+    let cloudCategories = await fetchCategoriesFromSupabase();
+
+    // If cloud is empty, automatically push seed/local categories to populate database
+    if (cloudCategories.length === 0) {
+      const itemsToPush = localCategories.length > 0 ? localCategories : INITIAL_CATEGORIES;
+      const supabase = getSupabaseClient();
+      if (supabase) {
+        const rows = itemsToPush.map(categoryToRow);
+        const { error } = await supabase.from("categories").upsert(rows, { onConflict: "id" });
+        if (error) {
+          return {
+            syncedToCloud: 0,
+            downloadedFromCloud: 0,
+            purgedFromLocal: 0,
+            allCategories: localCategories,
+            error: error.message,
+          };
+        }
+        cloudCategories = await fetchCategoriesFromSupabase();
+        return {
+          syncedToCloud: itemsToPush.length,
+          downloadedFromCloud: 0,
+          purgedFromLocal: 0,
+          allCategories: cloudCategories.length > 0 ? cloudCategories : itemsToPush,
+        };
+      }
+    }
 
     if (options.authoritativeCloud && cloudCategories.length > 0) {
       const { reconciled, purgedCount, downloadedCount } = reconcileCategoriesWithCloud(
@@ -222,7 +278,17 @@ export async function syncCategoriesWithCloud(
       for (const local of localCategories) {
         if (!cloudIds.has(local.id)) {
           const res = await upsertCategoryToSupabase(local);
-          if (res.success) uploadCount++;
+          if (res.success) {
+            uploadCount++;
+          } else if (res.error) {
+            return {
+              syncedToCloud: uploadCount,
+              downloadedFromCloud: 0,
+              purgedFromLocal: 0,
+              allCategories: localCategories,
+              error: res.error,
+            };
+          }
         }
       }
 
@@ -245,12 +311,14 @@ export async function syncCategoriesWithCloud(
       };
     }
   } catch (err) {
-    console.warn("[Supabase Database] Category sync failed:", err);
+    const errorMsg = err instanceof Error ? err.message : "Category sync failed";
+    console.warn("[Supabase Database] Category sync failed:", errorMsg);
     return {
       syncedToCloud: 0,
       downloadedFromCloud: 0,
       purgedFromLocal: 0,
       allCategories: localCategories,
+      error: errorMsg,
     };
   }
 }

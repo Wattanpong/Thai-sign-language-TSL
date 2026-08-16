@@ -304,6 +304,7 @@ export async function syncCategories(): Promise<{
   downloadedFromCloud: number;
   purgedFromLocal: number;
   allCategories: Category[];
+  error?: string;
 }> {
   const local = loadAllCategories();
   const syncResult = await syncCategoriesWithCloud(local, { authoritativeCloud: true });
@@ -311,6 +312,14 @@ export async function syncCategories(): Promise<{
     persistCategories(syncResult.allCategories);
   }
   return syncResult;
+}
+
+/**
+ * Force push seed categories to Supabase Cloud
+ */
+export async function pushSeedCategoriesToCloud() {
+  const { pushSeedToSupabase } = await import("@/lib/supabase/supabaseCategoryStorage");
+  return pushSeedToSupabase();
 }
 
 /**

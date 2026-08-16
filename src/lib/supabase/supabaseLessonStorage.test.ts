@@ -6,6 +6,7 @@ import {
   fetchLessonsFromSupabase,
   upsertLessonToSupabase,
   deleteLessonFromSupabase,
+  pushSeedToSupabase,
   reconcileLessonsWithCloud,
   syncLessonsWithCloud,
 } from "./supabaseLessonStorage";
@@ -13,7 +14,7 @@ import { Lesson } from "@/types";
 import { getLessons } from "@/lib/storage/lessonStorage";
 
 test("Supabase Lesson Database Storage Integration Test Suite", async (t) => {
-  await t.test("1. lessonToRow and rowToLesson serialization", () => {
+  await t.test("1. lessonToRow schema mapping: matches id, category_id, word, type, description, difficulty", () => {
     const lesson: Lesson = {
       id: "lesson_test",
       categoryId: "greetings",
@@ -32,8 +33,9 @@ test("Supabase Lesson Database Storage Integration Test Suite", async (t) => {
     assert.equal(row.id, "lesson_test");
     assert.equal(row.category_id, "greetings");
     assert.equal(row.word, "สวัสดี");
-    assert.equal(row.gesture_type, "dynamic");
-    assert.equal(row.is_active, true);
+    assert.equal(row.type, "dynamic");
+    assert.equal(row.description, "คำทักทาย");
+    assert.equal(row.difficulty, "beginner");
 
     const backToLesson = rowToLesson(row as unknown as Record<string, unknown>);
     assert.equal(backToLesson.id, lesson.id);
@@ -43,7 +45,7 @@ test("Supabase Lesson Database Storage Integration Test Suite", async (t) => {
     assert.equal(backToLesson.isActive, true);
   });
 
-  await t.test("2. Unconfigured environment handles fetch, upsert, and delete gracefully", async () => {
+  await t.test("2. Unconfigured environment handles fetch, upsert, delete, and pushSeed gracefully", async () => {
     const mockLesson: Lesson = {
       id: "lesson_unconf",
       categoryId: "greetings",
@@ -62,6 +64,9 @@ test("Supabase Lesson Database Storage Integration Test Suite", async (t) => {
 
     const deleteRes = await deleteLessonFromSupabase("lesson_unconf");
     assert.ok(typeof deleteRes.success === "boolean");
+
+    const pushRes = await pushSeedToSupabase();
+    assert.ok(typeof pushRes.success === "boolean");
   });
 
   await t.test("3. reconcileLessonsWithCloud identifies purged and new lessons", () => {

@@ -1,52 +1,53 @@
 import { Lesson, GestureType, DifficultyLevel } from "@/types";
+import { INITIAL_LESSONS } from "@/data/seedLessons";
 import { getSupabaseClient, isSupabaseConfigured } from "./client";
 
 export interface SupabaseLessonRow {
   id: string;
   category_id: string;
   word: string;
+  type: string;
   description: string;
-  gesture_type: string;
   difficulty: string;
-  order: number;
-  example?: string | null;
-  is_active: boolean;
-  created_at?: string;
-  updated_at?: string;
+}
+
+export interface SyncLessonsResult {
+  syncedToCloud: number;
+  downloadedFromCloud: number;
+  purgedFromLocal: number;
+  allLessons: Lesson[];
+  error?: string;
 }
 
 /**
- * Converts domain Lesson object to Supabase database row
+ * Converts domain Lesson object to Supabase database row matching schema:
+ * lessons: id (text), category_id (text), word (text), type (text), description (text), difficulty (text)
  */
 export function lessonToRow(lesson: Lesson): SupabaseLessonRow {
   return {
     id: lesson.id,
     category_id: lesson.categoryId,
     word: lesson.word,
+    type: lesson.gestureType,
     description: lesson.description || "",
-    gesture_type: lesson.gestureType,
     difficulty: lesson.difficulty || "beginner",
-    order: lesson.order ?? 0,
-    example: lesson.example || null,
-    is_active: lesson.isActive !== false,
-    created_at: lesson.createdAt || new Date().toISOString(),
-    updated_at: lesson.updatedAt || new Date().toISOString(),
   };
 }
 
 /**
- * Converts Supabase database row to domain Lesson object (handles snake_case and camelCase)
+ * Converts Supabase database row to domain Lesson object (handles type/gesture_type, category_id, etc.)
  */
 export function rowToLesson(row: Record<string, unknown>): Lesson {
+  const gestureType = (row.type || row.gesture_type || row.gestureType || "dynamic") as GestureType;
   const rawOrder = row.order ?? row.display_order ?? row.sort_order ?? row.seq ?? 0;
   return {
     id: String(row.id),
     categoryId: String(row.category_id || row.categoryId),
     word: String(row.word),
     description: row.description ? String(row.description) : "",
-    gestureType: (row.gesture_type || row.gestureType || "dynamic") as GestureType,
+    gestureType: gestureType === "static" ? "static" : "dynamic",
     difficulty: (row.difficulty || "beginner") as DifficultyLevel,
-    order: Number(rawOrder) || 0,
+    order: Number(rawOrder) || 1,
     example: row.example ? String(row.example) : undefined,
     isActive:
       row.is_active !== undefined
@@ -151,6 +152,38 @@ export async function deleteLessonFromSupabase(
 }
 
 /**
+ * Pushes default seed lessons to Supabase Database
+ */
+export async function pushSeedToSupabase(): Promise<{
+  success: boolean;
+  pushedCount: number;
+  error?: string;
+}> {
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    return { success: false, pushedCount: 0, error: "Supabase client not configured" };
+  }
+
+  try {
+    const rows = INITIAL_LESSONS.map(lessonToRow);
+    const { error } = await supabase
+      .from("lessons")
+      .upsert(rows, { onConflict: "id" });
+
+    if (error) {
+      console.error("[Supabase Database] pushSeedToSupabase lessons error:", error.message);
+      return { success: false, pushedCount: 0, error: error.message };
+    }
+
+    return { success: true, pushedCount: INITIAL_LESSONS.length };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Unknown error pushing seed lessons";
+    console.error("[Supabase Database] pushSeedToSupabase lessons failed:", msg);
+    return { success: false, pushedCount: 0, error: msg };
+  }
+}
+
+/**
  * Reconciles local lessons with cloud lessons (identifying stale items to purge and new ones)
  */
 export function reconcileLessonsWithCloud(
@@ -191,12 +224,7 @@ export function reconcileLessonsWithCloud(
 export async function syncLessonsWithCloud(
   localLessons: Lesson[],
   options: { authoritativeCloud?: boolean } = { authoritativeCloud: true }
-): Promise<{
-  syncedToCloud: number;
-  downloadedFromCloud: number;
-  purgedFromLocal: number;
-  allLessons: Lesson[];
-}> {
+): Promise<SyncLessonsResult> {
   if (!isSupabaseConfigured()) {
     return {
       syncedToCloud: 0,
@@ -207,7 +235,33 @@ export async function syncLessonsWithCloud(
   }
 
   try {
-    const cloudLessons = await fetchLessonsFromSupabase();
+    let cloudLessons = await fetchLessonsFromSupabase();
+
+    // If cloud is empty, automatically push seed/local lessons to populate database
+    if (cloudLessons.length === 0) {
+      const itemsToPush = localLessons.length > 0 ? localLessons : INITIAL_LESSONS;
+      const supabase = getSupabaseClient();
+      if (supabase) {
+        const rows = itemsToPush.map(lessonToRow);
+        const { error } = await supabase.from("lessons").upsert(rows, { onConflict: "id" });
+        if (error) {
+          return {
+            syncedToCloud: 0,
+            downloadedFromCloud: 0,
+            purgedFromLocal: 0,
+            allLessons: localLessons,
+            error: error.message,
+          };
+        }
+        cloudLessons = await fetchLessonsFromSupabase();
+        return {
+          syncedToCloud: itemsToPush.length,
+          downloadedFromCloud: 0,
+          purgedFromLocal: 0,
+          allLessons: cloudLessons.length > 0 ? cloudLessons : itemsToPush,
+        };
+      }
+    }
 
     if (options.authoritativeCloud && cloudLessons.length > 0) {
       const { reconciled, purgedCount, downloadedCount } = reconcileLessonsWithCloud(
@@ -228,7 +282,17 @@ export async function syncLessonsWithCloud(
       for (const local of localLessons) {
         if (!cloudIds.has(local.id)) {
           const res = await upsertLessonToSupabase(local);
-          if (res.success) uploadCount++;
+          if (res.success) {
+            uploadCount++;
+          } else if (res.error) {
+            return {
+              syncedToCloud: uploadCount,
+              downloadedFromCloud: 0,
+              purgedFromLocal: 0,
+              allLessons: localLessons,
+              error: res.error,
+            };
+          }
         }
       }
 
@@ -251,12 +315,14 @@ export async function syncLessonsWithCloud(
       };
     }
   } catch (err) {
-    console.warn("[Supabase Database] Lesson sync failed:", err);
+    const errorMsg = err instanceof Error ? err.message : "Lesson sync failed";
+    console.warn("[Supabase Database] Lesson sync failed:", errorMsg);
     return {
       syncedToCloud: 0,
       downloadedFromCloud: 0,
       purgedFromLocal: 0,
       allLessons: localLessons,
+      error: errorMsg,
     };
   }
 }

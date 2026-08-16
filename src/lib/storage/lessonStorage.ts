@@ -312,6 +312,7 @@ export async function syncLessons(): Promise<{
   downloadedFromCloud: number;
   purgedFromLocal: number;
   allLessons: Lesson[];
+  error?: string;
 }> {
   const local = loadAllLessons();
   const syncResult = await syncLessonsWithCloud(local, { authoritativeCloud: true });
@@ -319,6 +320,14 @@ export async function syncLessons(): Promise<{
     persistLessons(syncResult.allLessons);
   }
   return syncResult;
+}
+
+/**
+ * Force push seed lessons to Supabase Cloud
+ */
+export async function pushSeedLessonsToCloud() {
+  const { pushSeedToSupabase } = await import("@/lib/supabase/supabaseLessonStorage");
+  return pushSeedToSupabase();
 }
 
 /**

@@ -6,6 +6,7 @@ import {
   fetchCategoriesFromSupabase,
   upsertCategoryToSupabase,
   deleteCategoryFromSupabase,
+  pushSeedToSupabase,
   reconcileCategoriesWithCloud,
   syncCategoriesWithCloud,
 } from "./supabaseCategoryStorage";
@@ -13,7 +14,7 @@ import { Category } from "@/types";
 import { getCategories } from "@/lib/storage/categoryStorage";
 
 test("Supabase Category Database Storage Integration Test Suite", async (t) => {
-  await t.test("1. categoryToRow and rowToCategory serialization", () => {
+  await t.test("1. categoryToRow schema mapping: matches id, title, description, icon, level", () => {
     const category: Category = {
       id: "cat_test",
       name: "หมวดทดสอบ",
@@ -28,8 +29,10 @@ test("Supabase Category Database Storage Integration Test Suite", async (t) => {
 
     const row = categoryToRow(category);
     assert.equal(row.id, "cat_test");
-    assert.equal(row.name, "หมวดทดสอบ");
-    assert.equal(row.is_active, true);
+    assert.equal(row.title, "หมวดทดสอบ");
+    assert.equal(row.description, "คำอธิบายหมวดทดสอบ");
+    assert.equal(row.icon, "👋");
+    assert.equal(row.level, "beginner");
 
     const backToCat = rowToCategory(row as unknown as Record<string, unknown>);
     assert.equal(backToCat.id, category.id);
@@ -37,7 +40,7 @@ test("Supabase Category Database Storage Integration Test Suite", async (t) => {
     assert.equal(backToCat.isActive, true);
   });
 
-  await t.test("2. Unconfigured environment handles fetch, upsert, and delete gracefully", async () => {
+  await t.test("2. Unconfigured environment handles fetch, upsert, delete, and pushSeed gracefully", async () => {
     const mockCat: Category = {
       id: "cat_unconf",
       name: "ทดสอบ",
@@ -54,6 +57,9 @@ test("Supabase Category Database Storage Integration Test Suite", async (t) => {
 
     const deleteRes = await deleteCategoryFromSupabase("cat_unconf");
     assert.ok(typeof deleteRes.success === "boolean");
+
+    const pushRes = await pushSeedToSupabase();
+    assert.ok(typeof pushRes.success === "boolean");
   });
 
   await t.test("3. reconcileCategoriesWithCloud identifies purged and new categories", () => {

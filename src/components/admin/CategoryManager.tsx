@@ -102,11 +102,21 @@ export function CategoryManager() {
     setIsSyncing(true);
     try {
       const result = await syncCategories();
-      const purgeMsg = result.purgedFromLocal > 0 ? `, ล้างรายการที่ถูกลบ: ${result.purgedFromLocal}` : "";
-      showNotification("success", `Sync หมวดหมู่กับ Supabase Database สำเร็จ (ดึงใหม่: ${result.downloadedFromCloud}${purgeMsg})`);
+      if (result.error) {
+        showNotification("error", `Supabase Sync Error: ${result.error}`);
+      } else {
+        const parts: string[] = [];
+        if (result.syncedToCloud > 0) parts.push(`ส่งขึ้น Cloud: ${result.syncedToCloud}`);
+        if (result.downloadedFromCloud > 0) parts.push(`ดึงใหม่: ${result.downloadedFromCloud}`);
+        if (result.purgedFromLocal > 0) parts.push(`ล้างรายการที่ถูกลบ: ${result.purgedFromLocal}`);
+        
+        const details = parts.length > 0 ? ` (${parts.join(", ")})` : " (ข้อมูลตรงกันแล้ว)";
+        showNotification("success", `Sync หมวดหมู่กับ Supabase สำเร็จ${details}`);
+      }
       await loadData();
-    } catch {
-      showNotification("error", "เกิดข้อผิดพลาดในการ Sync กับ Cloud");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการ Sync กับ Cloud";
+      showNotification("error", `เกิดข้อผิดพลาด: ${msg}`);
     } finally {
       setIsSyncing(false);
     }
