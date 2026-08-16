@@ -91,8 +91,9 @@ export function ReferenceManager({ lesson }: ReferenceManagerProps) {
     setIsSyncing(true);
     try {
       const result = await syncReferencesWithCloud(lesson.id);
+      const purgeMsg = result.purgedFromLocal > 0 ? `, ล้างรายการที่ถูกลบ: ${result.purgedFromLocal}` : "";
       setNotification({
-        message: `Sync กับ Supabase Storage เรียบร้อย (ส่งขึ้น Cloud: ${result.syncedToCloud}, ดึงจาก Cloud: ${result.downloadedFromCloud})`,
+        message: `Sync กับ Supabase Storage เรียบร้อย (ดึงใหม่: ${result.downloadedFromCloud}${purgeMsg})`,
         type: "success",
       });
       await loadReferences();

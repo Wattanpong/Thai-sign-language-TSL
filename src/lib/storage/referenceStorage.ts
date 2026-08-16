@@ -285,27 +285,32 @@ export async function deleteReference(
   await persistLessonReferences(target.lessonId, remaining);
 
   if (options.syncCloud !== false && isSupabaseConfigured()) {
-    deleteReferenceFromSupabase(target.lessonId, id).catch((err) => {
+    try {
+      await deleteReferenceFromSupabase(target.lessonId, id);
+    } catch (err) {
       console.warn("[referenceStorage] Cloud delete warning:", err);
-    });
+    }
   }
 }
 
 /**
  * Synchronize all local references for a lesson with Supabase Cloud
+ * Reconciles both deletions and additions, ensuring local cache matches Cloud
  */
 export async function syncReferencesWithCloud(
   lessonId: string
 ): Promise<{
   syncedToCloud: number;
   downloadedFromCloud: number;
+  purgedFromLocal: number;
   allReferences: ReferenceGesture[];
 }> {
   const local = await getReferencesByLessonId(lessonId);
-  const syncResult = await syncLessonReferences(lessonId, local);
-  if (syncResult.allReferences.length > 0) {
-    await persistLessonReferences(lessonId, syncResult.allReferences);
-  }
+  const syncResult = await syncLessonReferences(lessonId, local, { authoritativeCloud: true });
+  
+  // Persist reconciled list (including empty array when all custom refs deleted)
+  await persistLessonReferences(lessonId, syncResult.allReferences);
+  
   return syncResult;
 }
 

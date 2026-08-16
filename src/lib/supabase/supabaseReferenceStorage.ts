@@ -212,21 +212,63 @@ export async function deleteReferenceFromSupabase(
   }
 }
 
+export interface SyncLessonReferencesResult {
+  syncedToCloud: number;
+  downloadedFromCloud: number;
+  purgedFromLocal: number;
+  allReferences: ReferenceGesture[];
+}
+
 /**
- * Syncs local references with Supabase Cloud
+ * Reconciles local references with cloud references, identifying items to purge or add
+ */
+export function reconcileReferencesWithCloud(
+  localReferences: ReferenceGesture[],
+  cloudReferences: ReferenceGesture[]
+): {
+  reconciled: ReferenceGesture[];
+  purgedCount: number;
+  downloadedCount: number;
+} {
+  const cloudIdMap = new Map(cloudReferences.map((r) => [r.id, r]));
+  const localIdSet = new Set(localReferences.map((r) => r.id));
+
+  // Count local items that no longer exist on cloud (Stale items)
+  let purgedCount = 0;
+  for (const localRef of localReferences) {
+    if (!cloudIdMap.has(localRef.id)) {
+      purgedCount++;
+    }
+  }
+
+  // Count new items downloaded from cloud
+  let downloadedCount = 0;
+  for (const cloudRef of cloudReferences) {
+    if (!localIdSet.has(cloudRef.id)) {
+      downloadedCount++;
+    }
+  }
+
+  return {
+    reconciled: cloudReferences,
+    purgedCount,
+    downloadedCount,
+  };
+}
+
+/**
+ * Syncs local references with Supabase Cloud with full deletion reconciliation
  */
 export async function syncLessonReferences(
   lessonId: string,
-  localReferences: ReferenceGesture[]
-): Promise<{
-  syncedToCloud: number;
-  downloadedFromCloud: number;
-  allReferences: ReferenceGesture[];
-}> {
+  localReferences: ReferenceGesture[],
+  options: { authoritativeCloud?: boolean } = { authoritativeCloud: true }
+): Promise<SyncLessonReferencesResult> {
   if (!isSupabaseConfigured()) {
     return {
       syncedToCloud: 0,
       downloadedFromCloud: 0,
+      purgedFromLocal: 0,
       allReferences: localReferences,
     };
   }
@@ -234,38 +276,54 @@ export async function syncLessonReferences(
   try {
     const cloudRefs = await fetchReferencesFromSupabase(lessonId);
 
-    // 1. Upload local references missing from cloud
-    const cloudIds = new Set(cloudRefs.map((r) => r.id));
-    let uploadCount = 0;
-    for (const localRef of localReferences) {
-      if (!cloudIds.has(localRef.id)) {
-        const res = await uploadReferenceToSupabase(localRef);
-        if (res.success) uploadCount++;
+    if (options.authoritativeCloud) {
+      // Authoritative Cloud Sync: Reconcile deletions & additions
+      const { reconciled, purgedCount, downloadedCount } = reconcileReferencesWithCloud(
+        localReferences,
+        cloudRefs
+      );
+
+      return {
+        syncedToCloud: 0,
+        downloadedFromCloud: downloadedCount,
+        purgedFromLocal: purgedCount,
+        allReferences: reconciled,
+      };
+    } else {
+      // Bidirectional sync: upload local missing, download cloud missing
+      const cloudIds = new Set(cloudRefs.map((r) => r.id));
+      let uploadCount = 0;
+      for (const localRef of localReferences) {
+        if (!cloudIds.has(localRef.id)) {
+          const res = await uploadReferenceToSupabase(localRef);
+          if (res.success) uploadCount++;
+        }
       }
-    }
 
-    // 2. Merge cloud references into local set
-    const localIds = new Set(localReferences.map((r) => r.id));
-    let downloadCount = 0;
-    const mergedList = [...localReferences];
+      const localIds = new Set(localReferences.map((r) => r.id));
+      let downloadCount = 0;
+      const mergedList = [...localReferences];
 
-    for (const cloudRef of cloudRefs) {
-      if (!localIds.has(cloudRef.id)) {
-        mergedList.push(cloudRef);
-        downloadCount++;
+      for (const cloudRef of cloudRefs) {
+        if (!localIds.has(cloudRef.id)) {
+          mergedList.push(cloudRef);
+          downloadCount++;
+        }
       }
-    }
 
-    return {
-      syncedToCloud: uploadCount,
-      downloadedFromCloud: downloadCount,
-      allReferences: mergedList,
-    };
+      return {
+        syncedToCloud: uploadCount,
+        downloadedFromCloud: downloadCount,
+        purgedFromLocal: 0,
+        allReferences: mergedList,
+      };
+    }
   } catch (err) {
     console.warn(`[Supabase Storage] Sync failed for lesson ${lessonId}:`, err);
     return {
       syncedToCloud: 0,
       downloadedFromCloud: 0,
+      purgedFromLocal: 0,
       allReferences: localReferences,
     };
   }
