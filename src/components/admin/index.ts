@@ -8,6 +8,4 @@ export * from "./CategoryManager";
 export * from "./LessonManager";
 export * from "./AdminLessonReferenceContainer";
 export * from "./DatasetManager";
-
-
-
+export * from "./VideoReferenceExtractor";

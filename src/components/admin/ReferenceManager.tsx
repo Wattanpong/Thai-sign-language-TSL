@@ -11,6 +11,7 @@ import {
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { ReferenceRecorder } from "./ReferenceRecorder";
 import { ReferenceInspector } from "./ReferenceInspector";
+import { VideoReferenceExtractor } from "./VideoReferenceExtractor";
 import { Card, Button, Badge } from "@/components/ui";
 
 export interface ReferenceManagerProps {
@@ -22,7 +23,7 @@ export function ReferenceManager({ lesson }: ReferenceManagerProps) {
   const [activeGesture, setActiveGesture] = React.useState<ReferenceGesture | null>(null);
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [isSyncing, setIsSyncing] = React.useState(false);
-  const [mode, setMode] = React.useState<"list" | "recorder" | "inspector">("list");
+  const [mode, setMode] = React.useState<"list" | "recorder" | "video-extractor" | "inspector">("list");
   const [notification, setNotification] = React.useState<{ message: string; type: "success" | "error" } | null>(null);
 
   React.useEffect(() => {
@@ -143,7 +144,7 @@ export function ReferenceManager({ lesson }: ReferenceManagerProps) {
     );
   }
 
-  // 2. Recorder View (Record a new reference)
+  // 2. Recorder View (Record a new reference from camera)
   if (mode === "recorder") {
     return (
       <ReferenceRecorder
@@ -158,7 +159,22 @@ export function ReferenceManager({ lesson }: ReferenceManagerProps) {
     );
   }
 
-  // 3. Multi-Reference List / Dashboard View
+  // 3. Video Extractor View (Extract from uploaded video)
+  if (mode === "video-extractor") {
+    return (
+      <VideoReferenceExtractor
+        lesson={lesson}
+        onSaved={async () => {
+          setNotification({ message: "สกัดและบันทึก Reference Gesture จากวิดีโอสำเร็จ", type: "success" });
+          await loadReferences();
+          setMode("list");
+        }}
+        onCancel={() => setMode("list")}
+      />
+    );
+  }
+
+  // 4. Multi-Reference List / Dashboard View
   const bestQuality = references.reduce(
     (max, r) => Math.max(max, r.qualityScore ?? 0),
     0
@@ -208,7 +224,7 @@ export function ReferenceManager({ lesson }: ReferenceManagerProps) {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
           {cloudReady && (
             <Button
               variant="outline"
@@ -222,12 +238,21 @@ export function ReferenceManager({ lesson }: ReferenceManagerProps) {
           )}
 
           <Button
+            variant="outline"
+            size="md"
+            onClick={() => setMode("video-extractor")}
+            className="font-bold shadow-xs text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+          >
+            📹 อัปโหลดไฟล์วิดีโอ (Upload Video)
+          </Button>
+
+          <Button
             variant="amber"
             size="md"
             onClick={() => setMode("recorder")}
             className="font-bold shadow-xs"
           >
-            + บันทึกตัวอย่างเพิ่ม (Add Example)
+            📷 บันทึกจากกล้องสด (Camera Record)
           </Button>
         </div>
       </div>
@@ -238,13 +263,22 @@ export function ReferenceManager({ lesson }: ReferenceManagerProps) {
           <p className="text-sm text-slate-500">
             ยังไม่มี Reference Gesture ต้นแบบสำหรับคำว่า &quot;{lesson.word}&quot;
           </p>
-          <Button
-            variant="amber"
-            onClick={() => setMode("recorder")}
-            className="font-semibold"
-          >
-            เริ่มบันทึกตัวอย่างแรก
-          </Button>
+          <div className="flex justify-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setMode("video-extractor")}
+              className="font-semibold text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+            >
+              📹 อัปโหลดจากไฟล์วิดีโอ
+            </Button>
+            <Button
+              variant="amber"
+              onClick={() => setMode("recorder")}
+              className="font-semibold"
+            >
+              📷 เริ่มบันทึกจากกล้อง
+            </Button>
+          </div>
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-4">
