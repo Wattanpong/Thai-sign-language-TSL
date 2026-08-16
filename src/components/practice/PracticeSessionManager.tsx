@@ -495,21 +495,21 @@ export function PracticeSessionManager({
       : "ขั้นตอนที่ 3/3: ประเมินคะแนน & คำแนะนำจาก AI";
 
   const renderWordSelectorCard = () => (
-    <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E2E8F0] shadow-xs space-y-3">
+    <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-[#E2E8F0] shadow-xs space-y-2.5">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">
-          เลือกคำศัพท์ที่ต้องการฝึก ({activeLessons.length} คำ):
+        <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">
+          เลือกคำศัพท์ฝึก ({activeLessons.length} คำ):
         </span>
-        <Badge variant="tag">
+        <Badge variant="tag" className="text-[10px]">
           {selectedLesson.gestureType === "dynamic"
-            ? "ท่าทางต่อเนื่อง (Dynamic)"
-            : "ท่าทางคงที่ (Static)"}
+            ? "ต่อเนื่อง (Dynamic)"
+            : "คงที่ (Static)"}
         </Badge>
       </div>
 
       {/* Category Tabs with Horizontal Scroll for Mobile & Desktop */}
       {categoryTabs.length > 1 && (
-        <div className="relative border-b border-[#E2E8F0] -mx-4 sm:-mx-5 px-4 sm:px-5">
+        <div className="relative border-b border-[#E2E8F0] -mx-3.5 sm:-mx-4 px-3.5 sm:px-4">
           <div
             className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar scroll-smooth pb-2 pt-0.5 flex-nowrap"
             role="tablist"
@@ -538,7 +538,7 @@ export function PracticeSessionManager({
                       resetSession();
                     }
                   }}
-                  className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
+                  className={`shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
                     isSelected
                       ? "bg-[#0F172A] text-white shadow-xs"
                       : "text-[#475569] hover:text-[#0F172A] hover:bg-[#F8FAFC] border border-transparent hover:border-[#E2E8F0]"
@@ -546,7 +546,7 @@ export function PracticeSessionManager({
                 >
                   <span>{tab.name}</span>
                   <span
-                    className={`text-[11px] px-1.5 py-0.2 rounded-full font-normal ${
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-normal ${
                       isSelected
                         ? "bg-white/20 text-white"
                         : "bg-[#F1F5F9] text-[#64748B]"
@@ -563,7 +563,7 @@ export function PracticeSessionManager({
 
       {/* Selectable Words Chips Grid with Max-Height (Scrollable if > 20 words) */}
       <div
-        className="flex flex-wrap gap-2 max-h-[220px] lg:max-h-[280px] overflow-y-auto pr-1"
+        className="flex flex-wrap gap-1.5 max-h-[160px] lg:max-h-[200px] overflow-y-auto pr-1"
         role="radiogroup"
         aria-label="เลือกคำศัพท์สำหรับฝึกฝน"
       >
@@ -584,7 +584,7 @@ export function PracticeSessionManager({
                   setSelectedLessonId(item.id);
                   resetSession();
                 }}
-                className={`inline-flex items-center gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm transition-all text-left cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs transition-all text-left cursor-pointer ${
                   isSelected
                     ? "bg-[#E0F2FE] text-[#0C4A6E] border-2 border-[#0EA5E9] font-semibold shadow-xs"
                     : "bg-white text-[#475569] border border-[#E2E8F0] font-normal hover:bg-[#F8FAFC] hover:border-[#CBD5E1] hover:text-[#0F172A]"
@@ -592,7 +592,7 @@ export function PracticeSessionManager({
               >
                 {isSelected ? (
                   <span
-                    className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#0EA5E9] text-white font-bold text-[9px] shrink-0"
+                    className="flex h-3 w-3 items-center justify-center rounded-full bg-[#0EA5E9] text-white font-bold text-[8px] shrink-0"
                     aria-hidden="true"
                   >
                     ✓
@@ -611,7 +611,7 @@ export function PracticeSessionManager({
       </div>
 
       {/* Selected Word Description */}
-      <div className="p-3 bg-[#F0F9FF] rounded-xl border border-[#BAE6FD] text-xs text-[#0C4A6E] flex items-start gap-2.5">
+      <div className="p-2.5 bg-[#F0F9FF] rounded-xl border border-[#BAE6FD] text-xs text-[#0C4A6E] flex items-start gap-2">
         <span className="font-bold text-sm text-[#0284C7] shrink-0">💡</span>
         <div className="space-y-0.5">
           <span className="font-bold text-[#0F172A]">วิธีทำท่า &quot;{selectedLesson.word}&quot;: </span>
@@ -625,11 +625,11 @@ export function PracticeSessionManager({
     const videoSrc = selectedLesson.videoUrl || selectedLesson.demoVideoUrl;
 
     return (
-      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E2E8F0] shadow-xs space-y-3">
+      <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-[#E2E8F0] shadow-xs space-y-2.5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-[#0F172A]">📹 วิดีโอตัวอย่างท่าทาง</span>
-            <Badge variant="tag">Demo Sign</Badge>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs sm:text-sm font-bold text-[#0F172A]">📹 วิดีโอตัวอย่าง</span>
+            <Badge variant="tag" className="text-[10px]">Demo</Badge>
           </div>
           {videoSrc ? (
             <Badge variant="success" className="text-[10px]">
@@ -637,13 +637,13 @@ export function PracticeSessionManager({
             </Badge>
           ) : (
             <Badge variant="outline" className="text-[10px]">
-              คำอธิบายท่าทาง
+              คำอธิบายท่า
             </Badge>
           )}
         </div>
 
         {videoSrc ? (
-          <div className="relative rounded-xl overflow-hidden bg-slate-950 aspect-video max-h-[220px] flex items-center justify-center border border-slate-200 shadow-inner">
+          <div className="relative rounded-xl overflow-hidden bg-slate-950 aspect-video max-h-[190px] flex items-center justify-center border border-slate-200 shadow-inner">
             <video
               key={videoSrc}
               src={videoSrc}
@@ -654,8 +654,8 @@ export function PracticeSessionManager({
             />
           </div>
         ) : (
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-1.5 flex flex-col items-center justify-center">
-            <div className="w-9 h-9 rounded-xl bg-sky-50 text-[#0284C7] flex items-center justify-center text-lg font-bold">
+          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-1 flex flex-col items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-sky-50 text-[#0284C7] flex items-center justify-center text-base font-bold">
               🖐️
             </div>
             <div className="space-y-0.5">
@@ -663,7 +663,7 @@ export function PracticeSessionManager({
                 ยังไม่มีคลิปวิดีโอตัวอย่าง
               </span>
               <p className="text-[11px] text-[#64748B] max-w-xs">
-                สามารถศึกษาลักษณะท่าทาง &quot;{selectedLesson.word}&quot; ได้จากคำอธิบายและแนวทางการวางมือด้านล่าง
+                ศึกษาลักษณะท่าทาง &quot;{selectedLesson.word}&quot; ได้จากคำอธิบายด้านล่าง
               </p>
             </div>
           </div>
@@ -673,61 +673,57 @@ export function PracticeSessionManager({
   };
 
   const renderLessonGuideCard = () => (
-    <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E2E8F0] shadow-xs space-y-4">
+    <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-[#E2E8F0] shadow-xs space-y-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-bold text-[#0F172A]">คำศัพท์ที่เลือก</span>
-          <Badge variant="primary" className="font-bold">
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs sm:text-sm font-bold text-[#0F172A]">คำศัพท์ที่เลือก</span>
+          <Badge variant="primary" className="font-bold text-xs">
             {selectedLesson.word}
           </Badge>
         </div>
-        <Badge variant="tag">
-          {selectedLesson.difficulty === "beginner" && "ระดับ: ง่าย"}
-          {selectedLesson.difficulty === "intermediate" && "ระดับ: ปานกลาง"}
-          {selectedLesson.difficulty === "advanced" && "ระดับ: ขั้นสูง"}
-          {!selectedLesson.difficulty && "ระดับ: ทั่วไป"}
+        <Badge variant="tag" className="text-[10px]">
+          {selectedLesson.difficulty === "beginner" && "ง่าย"}
+          {selectedLesson.difficulty === "intermediate" && "ปานกลาง"}
+          {selectedLesson.difficulty === "advanced" && "ขั้นสูง"}
+          {!selectedLesson.difficulty && "ทั่วไป"}
         </Badge>
       </div>
 
-      <div className="p-3.5 bg-[#F0F9FF] rounded-xl border border-[#BAE6FD] space-y-1.5">
-        <div className="flex items-center gap-1.5 text-xs font-bold text-[#0369A1]">
-          <span>💡 วิธีทำท่าภาษามือ:</span>
+      <div className="p-2.5 bg-[#F0F9FF] rounded-xl border border-[#BAE6FD] space-y-1">
+        <div className="flex items-center gap-1 text-xs font-bold text-[#0369A1]">
+          <span>💡 วิธีทำท่า:</span>
         </div>
-        <p className="text-xs sm:text-sm text-[#0F172A] leading-relaxed">
+        <p className="text-xs text-[#0F172A] leading-relaxed">
           {selectedLesson.description || "ทำท่าทางตามตัวอย่างให้ชัดเจนและมั่นคง"}
         </p>
       </div>
 
       <div className="grid grid-cols-2 gap-2 text-xs">
-        <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-          <span className="text-[#64748B] block">ประเภทท่าทาง</span>
-          <span className="font-semibold text-[#0F172A]">
-            {selectedLesson.gestureType === "dynamic" ? "🔄 ท่าต่อเนื่อง (Dynamic)" : "🖐️ ท่าคงที่ (Static Hold)"}
+        <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-0.5">
+          <span className="text-[10px] text-[#64748B] block">ประเภทท่า</span>
+          <span className="font-semibold text-[#0F172A] text-[11px]">
+            {selectedLesson.gestureType === "dynamic" ? "🔄 ต่อเนื่อง" : "🖐️ คงที่ (Hold)"}
           </span>
         </div>
 
-        <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-          <span className="text-[#64748B] block">ต้นแบบในระบบ</span>
-          <span className="font-semibold text-[#0F172A]">
-            {referenceCount > 0 ? `✓ มี ${referenceCount} ตัวอย่าง` : "⚡ ใช้เกณฑ์มาตรฐาน"}
+        <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-0.5">
+          <span className="text-[10px] text-[#64748B] block">ต้นแบบระบบ</span>
+          <span className="font-semibold text-[#0F172A] text-[11px]">
+            {referenceCount > 0 ? `✓ มี ${referenceCount} ตัวอย่าง` : "⚡ เกณฑ์มาตรฐาน"}
           </span>
         </div>
       </div>
 
-      <div className="space-y-1.5 pt-1 border-t border-slate-100 text-xs text-[#64748B]">
-        <span className="font-semibold text-[#334155] block">คำแนะนำขณะฝึกฝน:</span>
-        <ul className="space-y-1 pl-1">
-          <li className="flex items-center gap-1.5">
+      <div className="space-y-1 pt-1 border-t border-slate-100 text-[11px] text-[#64748B]">
+        <span className="font-semibold text-[#334155] block">ข้อแนะนำ:</span>
+        <ul className="space-y-0.5 pl-0.5">
+          <li className="flex items-center gap-1">
             <span className="text-emerald-500 font-bold">✓</span>
-            <span>จัดระยะห่างให้เห็นท่อนแขนและมือชัดเจนในมุมกล้อง</span>
+            <span>จัดให้เห็นท่อนแขนและมือชัดเจนในมุมกล้อง</span>
           </li>
-          <li className="flex items-center gap-1.5">
+          <li className="flex items-center gap-1">
             <span className="text-emerald-500 font-bold">✓</span>
-            <span>หันฝ่ามือและตำแหน่งนิ้วให้ตรงกับคำอธิบาย</span>
-          </li>
-          <li className="flex items-center gap-1.5">
-            <span className="text-emerald-500 font-bold">✓</span>
-            <span>เมื่อทำท่าเสร็จแล้ว ให้กดปุ่ม &quot;หยุดและตรวจคะแนน&quot;</span>
+            <span>เมื่อทำท่าเสร็จให้กดปุ่ม &quot;หยุดและตรวจคะแนน&quot;</span>
           </li>
         </ul>
       </div>
@@ -735,26 +731,26 @@ export function PracticeSessionManager({
   );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
-      {/* LEFT COLUMN: Demo Video Preview, Word Selector & Lesson Guidance */}
-      <div className="lg:col-span-5 xl:col-span-5 space-y-4 w-full">
-        {/* 1. Demo Video Preview Card (Top of Left Column) */}
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 xl:gap-5 items-start">
+      {/* 1. LEFT COLUMN: Demo Video Preview, Word Selector & Lesson Guidance */}
+      <div className="lg:col-span-3 xl:col-span-3 space-y-3.5 w-full">
+        {/* Demo Video Preview Card (Top of Left Column) */}
         {renderDemoVideoCard()}
 
-        {/* 2. Word Selector Card */}
+        {/* Word Selector Card */}
         {renderWordSelectorCard()}
 
-        {/* 3. Lesson Guidance Card */}
+        {/* Lesson Guidance Card */}
         {renderLessonGuideCard()}
 
-        {/* 4. Collapsible 3-Step Guide */}
+        {/* Collapsible 3-Step Guide */}
         <PracticeGuide />
       </div>
 
-      {/* RIGHT COLUMN: Live Camera, Practice Controls & Evaluation Results */}
-      <div className="lg:col-span-7 xl:col-span-7 space-y-4 min-w-0">
-        {/* 1. Practice Header Banner */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+      {/* 2. CENTER COLUMN: Live Camera, Practice Controls & Live Feedback */}
+      <div className="lg:col-span-5 xl:col-span-5 space-y-3.5 min-w-0">
+        {/* Practice Header Banner */}
+        <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
           <div className="space-y-0.5">
             <div className="flex items-center gap-2">
               <Badge variant="default">ฝึกฝนด้วย AI</Badge>
@@ -769,14 +765,14 @@ export function PracticeSessionManager({
 
           <Link
             href="/lessons"
-            className="text-xs font-semibold text-[#0284C7] hover:text-[#0369A1] inline-flex items-center gap-1 shrink-0 px-2.5 py-1.5 rounded-xl hover:bg-sky-50 transition-colors"
+            className="text-xs font-semibold text-[#0284C7] hover:text-[#0369A1] inline-flex items-center gap-1 shrink-0 px-2.5 py-1 rounded-xl hover:bg-sky-50 transition-colors"
           >
             <span>← คลังบทเรียน</span>
           </Link>
         </div>
 
-        {/* 2. Step Indicator Bar */}
-        <div className="flex items-center justify-between px-3.5 py-2 bg-[#F0F9FF] rounded-xl border border-[#BAE6FD] text-xs font-semibold text-[#0369A1]">
+        {/* Step Indicator Bar */}
+        <div className="flex items-center justify-between px-3 py-1.5 bg-[#F0F9FF] rounded-xl border border-[#BAE6FD] text-xs font-semibold text-[#0369A1]">
           <div className="flex items-center gap-2">
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#0EA5E9] text-white font-bold text-[11px]">
               {currentStepNumber}
@@ -784,41 +780,29 @@ export function PracticeSessionManager({
             <span>{currentStepName}</span>
           </div>
           <span className="text-[11px] text-[#0284C7] font-normal hidden sm:inline">
-            {currentStepNumber === 1 && "เลือกคำศัพท์ด้านซ้าย แล้วกดปุ่มเปิดกล้อง"}
-            {currentStepNumber === 2 && "ทำท่าทางตามตัวอย่าง แล้วกดหยุดเพื่อตรวจคะแนน"}
-            {currentStepNumber === 3 && "ดูคะแนนความถูกต้องแยกตามส่วนและคำแนะนำ"}
+            {currentStepNumber === 1 && "กดเริ่มฝึกท่าทางตามตัวอย่าง"}
+            {currentStepNumber === 2 && "ทำท่าเสร็จแล้วกดหยุดตรวจคะแนน"}
+            {currentStepNumber === 3 && "ดูคะแนนที่แผงผลการประเมินฝั่งขวา"}
           </span>
         </div>
 
-        {/* 3. Evaluation Result Panel (Appears at top of right column when completed) */}
-        {sessionState === "completed" && evaluationResult && (
-          <PracticeResultCard
-            result={evaluationResult}
-            word={selectedLesson.word}
-            onReset={resetSession}
-          />
-        )}
-
-        {/* 4. Top Camera Controls & Status Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs">
-          <div className="flex items-center gap-2.5">
-            <div className="flex items-center gap-2">
-              <span
-                className={`h-2.5 w-2.5 rounded-full ${
-                  cameraState === "ready"
-                    ? "bg-emerald-500 animate-pulse"
-                    : cameraState === "requesting"
-                    ? "bg-amber-400 animate-ping"
-                    : cameraState === "error"
-                    ? "bg-red-500"
-                    : "bg-slate-300"
-                }`}
-              />
-              <span className="text-xs sm:text-sm font-semibold text-[#0F172A]">
-                สถานะกล้อง:
-              </span>
-            </div>
-
+        {/* Camera Controls & Status Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs">
+          <div className="flex items-center gap-2">
+            <span
+              className={`h-2.5 w-2.5 rounded-full ${
+                cameraState === "ready"
+                  ? "bg-emerald-500 animate-pulse"
+                  : cameraState === "requesting"
+                  ? "bg-amber-400 animate-ping"
+                  : cameraState === "error"
+                  ? "bg-red-500"
+                  : "bg-slate-300"
+              }`}
+            />
+            <span className="text-xs font-semibold text-[#0F172A]">
+              กล้อง:
+            </span>
             <Badge
               variant={
                 cameraState === "ready"
@@ -829,6 +813,7 @@ export function PracticeSessionManager({
                   ? "outline"
                   : "default"
               }
+              className="text-[11px]"
             >
               {cameraState === "ready" && "พร้อมตรวจจับ"}
               {cameraState === "requesting" && "กำลังเปิดกล้อง..."}
@@ -837,25 +822,18 @@ export function PracticeSessionManager({
             </Badge>
 
             {sessionState === "practicing" && (
-              <Badge variant="warning" className="animate-pulse">
-                🔴 กำลังบันทึก: {liveDurationSec}s
-              </Badge>
-            )}
-
-            {sessionState === "analyzing" && (
-              <Badge variant="default" className="animate-pulse">
-                ⚡ กำลังวิเคราะห์...
+              <Badge variant="warning" className="animate-pulse text-[11px]">
+                🔴 บันทึก: {liveDurationSec}s
               </Badge>
             )}
           </div>
 
-          {/* Action Controls */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
             <button
               type="button"
               onClick={() => setIsMirrored((prev) => !prev)}
               title="สลับภาพให้เหมือนกระจกเงา"
-              className="px-2.5 py-1 text-xs font-medium rounded-lg border border-[#CBD5E1] bg-white text-[#475569] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+              className="px-2 py-1 text-[11px] font-medium rounded-lg border border-[#CBD5E1] bg-white text-[#475569] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
             >
               {isMirrored ? "กระจก: เปิด" : "กระจก: ปิด"}
             </button>
@@ -864,9 +842,9 @@ export function PracticeSessionManager({
               <button
                 type="button"
                 onClick={() => setShowDebug((prev) => !prev)}
-                className="px-2.5 py-1 text-xs font-medium rounded-lg border border-[#CBD5E1] bg-white text-[#475569] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+                className="px-2 py-1 text-[11px] font-medium rounded-lg border border-[#CBD5E1] bg-white text-[#475569] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
               >
-                {showDebug ? "ซ่อน Debug" : "แสดง Debug"}
+                {showDebug ? "ซ่อน Debug" : "Debug"}
               </button>
             )}
 
@@ -875,7 +853,7 @@ export function PracticeSessionManager({
                 variant="outline"
                 size="sm"
                 onClick={stopCamera}
-                className="text-red-600 border-red-200 hover:bg-red-50 text-xs py-1 h-8"
+                className="text-red-600 border-red-200 hover:bg-red-50 text-[11px] py-0.5 h-7"
               >
                 ปิดกล้อง
               </Button>
@@ -884,7 +862,7 @@ export function PracticeSessionManager({
                 size="sm"
                 variant="amber"
                 onClick={startCamera}
-                className="shadow-xs font-semibold text-xs py-1 h-8"
+                className="shadow-xs font-semibold text-[11px] py-0.5 h-7"
               >
                 เปิดกล้อง
               </Button>
@@ -894,7 +872,7 @@ export function PracticeSessionManager({
 
         {/* Loading Step Progress Indicator */}
         {cameraState === "requesting" && initStepMessage && (
-          <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-center gap-2.5">
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-center gap-2.5">
             <div className="w-4 h-4 border-2 border-amber-600 border-t-transparent rounded-full animate-spin shrink-0" />
             <span className="font-medium">{initStepMessage}</span>
           </div>
@@ -902,33 +880,31 @@ export function PracticeSessionManager({
 
         {/* Camera / Practice Errors */}
         {(cameraError || practiceError) && (
-          <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800 flex flex-wrap items-center justify-between gap-2.5 animate-fadeIn">
+          <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800 flex flex-wrap items-center justify-between gap-2 animate-fadeIn">
             <div className="flex items-center gap-2">
               <span>⚠️ {cameraError || practiceError}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  setCameraError(null);
-                  resetSession();
-                }}
-                className="text-red-700 border-red-300 hover:bg-red-100 font-semibold text-xs py-1 h-7"
-              >
-                ↻ รีเซ็ตลองใหม่
-              </Button>
-            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setCameraError(null);
+                resetSession();
+              }}
+              className="text-red-700 border-red-300 hover:bg-red-100 font-semibold text-xs py-0.5 h-6"
+            >
+              ↻ รีเซ็ต
+            </Button>
           </div>
         )}
 
-        {/* 5. Compact Main Viewport & Video / Canvas Area */}
+        {/* Main Viewport & Video / Canvas Area */}
         <Card className="overflow-hidden p-0 border-[#E2E8F0] shadow-sm rounded-2xl bg-slate-950">
           <div
-            className={`relative w-full max-h-[360px] sm:max-h-[380px] aspect-video bg-slate-950 rounded-2xl overflow-hidden flex items-center justify-center transition-all duration-300 ${
+            className={`relative w-full max-h-[340px] aspect-video bg-slate-950 rounded-2xl overflow-hidden flex items-center justify-center transition-all duration-300 ${
               cameraState === "ready" || cameraState === "requesting"
-                ? "h-[280px] sm:h-[340px] lg:h-[360px]"
-                : "h-[180px] sm:h-[220px]"
+                ? "h-[240px] sm:h-[300px] lg:h-[340px]"
+                : "h-[180px] sm:h-[200px]"
             }`}
           >
             <video
@@ -948,12 +924,12 @@ export function PracticeSessionManager({
 
             {/* Real-time Live Practice HUD */}
             {sessionState === "practicing" && liveFeedback && (
-              <div className="absolute top-2.5 inset-x-2.5 sm:top-3 sm:inset-x-3 z-20 flex flex-col gap-1.5 pointer-events-none animate-fadeIn">
-                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-900/85 backdrop-blur-md border border-white/15 shadow-md text-white">
+              <div className="absolute top-2 inset-x-2 z-20 flex flex-col gap-1.5 pointer-events-none animate-fadeIn">
+                <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-slate-900/85 backdrop-blur-md border border-white/15 shadow-md text-white">
                   {/* Live Score Pill */}
                   <div className="flex items-center gap-2">
                     <div
-                      className={`px-2.5 py-0.5 rounded-lg text-xs font-black tracking-wider flex items-center gap-1 shadow-xs ${
+                      className={`px-2 py-0.5 rounded-lg text-xs font-black tracking-wider flex items-center gap-1 shadow-xs ${
                         liveFeedback.liveScore >= 85
                           ? "bg-emerald-500 text-white"
                           : liveFeedback.liveScore >= 60
@@ -966,7 +942,7 @@ export function PracticeSessionManager({
                     </div>
 
                     {/* Primary Feedback Status */}
-                    <span className="text-xs sm:text-sm font-semibold truncate max-w-[180px] sm:max-w-xs md:max-w-md">
+                    <span className="text-xs font-semibold truncate max-w-[160px] sm:max-w-xs">
                       {liveFeedback.severity === "success" && "🟢 "}
                       {liveFeedback.severity === "warning" && "🟡 "}
                       {liveFeedback.severity === "error" && "🔴 "}
@@ -976,9 +952,8 @@ export function PracticeSessionManager({
 
                   {/* Gesture Progress if dynamic */}
                   {selectedLesson.gestureType === "dynamic" && (
-                    <div className="flex items-center gap-2 text-xs font-medium text-slate-300 shrink-0">
-                      <span className="hidden sm:inline">จังหวะท่า:</span>
-                      <div className="w-14 sm:w-16 h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-slate-300 shrink-0">
+                      <div className="w-12 h-1.5 bg-slate-700 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-[#0EA5E9] transition-all duration-100"
                           style={{
@@ -993,12 +968,12 @@ export function PracticeSessionManager({
               </div>
             )}
 
-            {/* Analyzing Processing Overlay inside Video Viewport */}
+            {/* Analyzing Processing Overlay */}
             {sessionState === "analyzing" && (
               <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-xs text-white p-6 space-y-3 animate-fadeIn">
-                <div className="w-10 h-10 border-3 border-[#0EA5E9] border-t-transparent rounded-full animate-spin" />
-                <div className="text-center space-y-1">
-                  <h4 className="text-base font-bold text-white">กำลังวิเคราะห์ผลคะแนน AI...</h4>
+                <div className="w-9 h-9 border-3 border-[#0EA5E9] border-t-transparent rounded-full animate-spin" />
+                <div className="text-center space-y-0.5">
+                  <h4 className="text-sm font-bold text-white">กำลังวิเคราะห์ผลคะแนน AI...</h4>
                   <p className="text-xs text-slate-300">ระบบกำลังคำนวณความแม่นยำด้วย DTW & Scoring Engine</p>
                 </div>
               </div>
@@ -1007,16 +982,16 @@ export function PracticeSessionManager({
             {/* Standby screen when camera is off */}
             {cameraState === "off" && (
               <div className="flex flex-col items-center justify-center text-center p-6 text-slate-400 space-y-2">
-                <div className="h-11 w-11 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-[#0EA5E9]">
+                <div className="h-10 w-10 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-[#0EA5E9]">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2z" />
                   </svg>
                 </div>
                 <div className="space-y-0.5">
-                  <h3 className="text-sm font-semibold text-slate-200">
+                  <h3 className="text-xs sm:text-sm font-semibold text-slate-200">
                     กล้องยังไม่ได้เปิดใช้งาน
                   </h3>
-                  <p className="text-xs text-slate-400 max-w-xs">
+                  <p className="text-[11px] text-slate-400 max-w-xs">
                     กดปุ่ม &quot;เปิดกล้อง&quot; ด้านบน เพื่อเริ่มการตรวจจับท่าทางภาษามือแบบ Real-time
                   </p>
                 </div>
@@ -1025,16 +1000,16 @@ export function PracticeSessionManager({
           </div>
         </Card>
 
-        {/* 6. Practice Action Controls Bar (Prominent Outside Video Feed) */}
+        {/* Practice Action Controls Bar */}
         {cameraState === "ready" && (
-          <div className="p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="w-full sm:w-auto flex items-center gap-3">
+          <div className="p-3.5 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-2.5">
+            <div className="w-full sm:w-auto flex items-center gap-2.5">
               {sessionState === "idle" && (
                 <Button
                   variant="amber"
-                  size="lg"
+                  size="md"
                   onClick={startPractice}
-                  className="w-full sm:w-auto font-bold shadow-xs px-8 py-3 text-sm sm:text-base rounded-xl"
+                  className="w-full sm:w-auto font-bold shadow-xs px-6 py-2.5 text-xs sm:text-sm rounded-xl"
                 >
                   ▶ เริ่มฝึกท่า &quot;{selectedLesson.word}&quot; (Start Practice)
                 </Button>
@@ -1044,16 +1019,16 @@ export function PracticeSessionManager({
                 <button
                   type="button"
                   onClick={stopAndAnalyze}
-                  className="w-full sm:w-auto min-h-[46px] px-8 py-3 rounded-xl bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-sm sm:text-base shadow-lg flex items-center justify-center gap-2.5 transition-all transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer animate-pulse"
+                  className="w-full sm:w-auto min-h-[42px] px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer animate-pulse"
                 >
-                  <span className="text-lg leading-none">⏹</span>
+                  <span className="text-base leading-none">⏹</span>
                   <span>หยุดและตรวจคะแนน (Stop & Evaluate)</span>
                 </button>
               )}
 
               {sessionState === "analyzing" && (
-                <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-50 border border-sky-200 text-[#0284C7] text-xs font-semibold">
-                  <div className="w-4 h-4 border-2 border-[#0EA5E9] border-t-transparent rounded-full animate-spin" />
+                <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-sky-50 border border-sky-200 text-[#0284C7] text-xs font-semibold">
+                  <div className="w-3.5 h-3.5 border-2 border-[#0EA5E9] border-t-transparent rounded-full animate-spin" />
                   <span>กำลังประเมินผลคะแนน AI...</span>
                 </div>
               )}
@@ -1061,9 +1036,9 @@ export function PracticeSessionManager({
               {sessionState === "completed" && (
                 <Button
                   variant="amber"
-                  size="md"
+                  size="sm"
                   onClick={resetSession}
-                  className="font-bold shadow-xs px-6 py-2.5 rounded-xl"
+                  className="font-bold shadow-xs px-5 py-2 text-xs rounded-xl"
                 >
                   ↻ ฝึกใหม่อีกครั้ง (Practice Again)
                 </Button>
@@ -1072,82 +1047,66 @@ export function PracticeSessionManager({
               {sessionState === "error" && (
                 <Button
                   variant="outline"
-                  size="md"
+                  size="sm"
                   onClick={resetSession}
-                  className="font-bold text-red-600 border-red-200 hover:bg-red-50 rounded-xl"
+                  className="font-bold text-red-600 border-red-200 hover:bg-red-50 text-xs rounded-xl"
                 >
                   ↻ ลองใหม่อีกครั้ง (Try Again)
                 </Button>
               )}
             </div>
 
-            <div className="text-xs text-[#64748B] flex items-center gap-2">
-              {sessionState === "idle" && "กดปุ่มเริ่มฝึกเมื่อจัดท่าพร้อมแล้ว"}
+            <div className="text-[11px] text-[#64748B] flex items-center gap-2">
+              {sessionState === "idle" && "กดเริ่มฝึกเมื่อจัดท่าพร้อมแล้ว"}
               {sessionState === "practicing" && (
                 <span className="text-red-600 font-semibold flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                  กำลังบันทึก: {liveDurationSec}s ({liveFrameCount} เฟรม)
+                  บันทึก: {liveDurationSec}s ({liveFrameCount}f)
                 </span>
               )}
-              {sessionState === "analyzing" && "กำลังประมวลผลความแม่นยำด้วย Scoring Engine..."}
-              {sessionState === "completed" && "ประเมินผลเรียบร้อยแล้ว"}
-              {sessionState === "error" && "กดปุ่มเพื่อเริ่มใหม่อีกครั้ง"}
+              {sessionState === "analyzing" && "กำลังคำนวณคะแนน..."}
+              {sessionState === "completed" && "ผลประเมินแสดงที่แผงฝั่งขวา"}
+              {sessionState === "error" && "กดปุ่มเพื่อเริ่มใหม่"}
             </div>
           </div>
         )}
 
-        {/* 7. Live AI Component Scores & Real-Time Finger Feedback */}
+        {/* Live AI Component Breakdown Bars */}
         {sessionState === "practicing" && liveFeedback && (
-          <div className="p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs space-y-3 animate-fadeIn">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-[#0F172A]">
-                  AI Real-Time Feedback
-                </span>
-                <Badge
-                  variant={
-                    liveFeedback.severity === "success"
-                      ? "success"
-                      : liveFeedback.severity === "warning"
-                      ? "warning"
-                      : "outline"
-                  }
-                >
-                  {liveFeedback.severity === "success" && "ท่าทางถูกต้อง"}
-                  {liveFeedback.severity === "warning" && "ควรปรับปรุงเล็กน้อย"}
-                  {liveFeedback.severity === "error" && "ท่าทางยังไม่ถูกต้อง"}
-                </Badge>
-              </div>
-
-              {liveFeedback.correctionDirection && (
-                <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
-                  💡 คำแนะนำ: {liveFeedback.correctionDirection}
-                </span>
-              )}
+          <div className="p-3.5 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs space-y-2.5 animate-fadeIn">
+            <div className="flex flex-wrap items-center justify-between gap-1.5">
+              <span className="text-xs font-bold text-[#0F172A]">
+                AI Real-Time Feedback
+              </span>
+              <Badge
+                variant={
+                  liveFeedback.severity === "success"
+                    ? "success"
+                    : liveFeedback.severity === "warning"
+                    ? "warning"
+                    : "outline"
+                }
+                className="text-[10px]"
+              >
+                {liveFeedback.severity === "success" && "ท่าทางถูกต้อง"}
+                {liveFeedback.severity === "warning" && "ควรปรับปรุงเล็กน้อย"}
+                {liveFeedback.severity === "error" && "ท่าทางยังไม่ถูกต้อง"}
+              </Badge>
             </div>
 
-            {/* Secondary feedback list if any */}
-            {liveFeedback.secondaryFeedback.length > 0 && (
-              <div className="flex flex-wrap gap-2 text-xs text-[#475569]">
-                {liveFeedback.secondaryFeedback.map((msg, idx) => (
-                  <span
-                    key={idx}
-                    className="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200"
-                  >
-                    • {msg}
-                  </span>
-                ))}
+            {liveFeedback.correctionDirection && (
+              <div className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                💡 {liveFeedback.correctionDirection}
               </div>
             )}
 
-            {/* Real-time Component Score Breakdown Bars */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-2 border-t border-slate-100 text-xs">
-              <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-                <div className="flex justify-between text-[#64748B]">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-xs">
+              <div className="p-1.5 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
+                <div className="flex justify-between text-[11px] text-[#64748B]">
                   <span>ทิศทางมือ</span>
                   <span className="font-bold text-[#0F172A]">{liveFeedback.componentScores.palmOrientation}%</span>
                 </div>
-                <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
                   <div
                     className={`h-full ${
                       liveFeedback.componentScores.palmOrientation >= 70 ? "bg-emerald-500" : "bg-rose-500"
@@ -1157,12 +1116,12 @@ export function PracticeSessionManager({
                 </div>
               </div>
 
-              <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-                <div className="flex justify-between text-[#64748B]">
+              <div className="p-1.5 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
+                <div className="flex justify-between text-[11px] text-[#64748B]">
                   <span>ตำแหน่งมือ</span>
                   <span className="font-bold text-[#0F172A]">{liveFeedback.componentScores.handPosition}%</span>
                 </div>
-                <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
                   <div
                     className={`h-full ${
                       liveFeedback.componentScores.handPosition >= 70 ? "bg-emerald-500" : "bg-rose-500"
@@ -1172,12 +1131,12 @@ export function PracticeSessionManager({
                 </div>
               </div>
 
-              <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-                <div className="flex justify-between text-[#64748B]">
+              <div className="p-1.5 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
+                <div className="flex justify-between text-[11px] text-[#64748B]">
                   <span>การงอนิ้ว</span>
                   <span className="font-bold text-[#0F172A]">{liveFeedback.componentScores.fingerCurl}%</span>
                 </div>
-                <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
                   <div
                     className={`h-full ${
                       liveFeedback.componentScores.fingerCurl >= 70 ? "bg-emerald-500" : "bg-rose-500"
@@ -1187,12 +1146,12 @@ export function PracticeSessionManager({
                 </div>
               </div>
 
-              <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-                <div className="flex justify-between text-[#64748B]">
+              <div className="p-1.5 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
+                <div className="flex justify-between text-[11px] text-[#64748B]">
                   <span>มุมข้อนิ้ว</span>
                   <span className="font-bold text-[#0F172A]">{liveFeedback.componentScores.fingerAngle}%</span>
                 </div>
-                <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
                   <div
                     className={`h-full ${
                       liveFeedback.componentScores.fingerAngle >= 70 ? "bg-emerald-500" : "bg-rose-500"
@@ -1202,12 +1161,12 @@ export function PracticeSessionManager({
                 </div>
               </div>
 
-              <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-                <div className="flex justify-between text-[#64748B]">
+              <div className="p-1.5 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
+                <div className="flex justify-between text-[11px] text-[#64748B]">
                   <span>รูปทรงมือ</span>
                   <span className="font-bold text-[#0F172A]">{liveFeedback.componentScores.handShape}%</span>
                 </div>
-                <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
                   <div
                     className={`h-full ${
                       liveFeedback.componentScores.handShape >= 70 ? "bg-emerald-500" : "bg-rose-500"
@@ -1217,12 +1176,12 @@ export function PracticeSessionManager({
                 </div>
               </div>
 
-              <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-                <div className="flex justify-between text-[#64748B]">
-                  <span>ความสัมพันธ์สองมือ</span>
+              <div className="p-1.5 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
+                <div className="flex justify-between text-[11px] text-[#64748B]">
+                  <span>ความสัมพันธ์ 2 มือ</span>
                   <span className="font-bold text-[#0F172A]">{liveFeedback.componentScores.twoHand}%</span>
                 </div>
-                <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
                   <div
                     className={`h-full ${
                       liveFeedback.componentScores.twoHand >= 70 ? "bg-emerald-500" : "bg-rose-500"
@@ -1234,8 +1193,26 @@ export function PracticeSessionManager({
             </div>
           </div>
         )}
+      </div>
 
-        {/* Real-World Diagnostic & Telemetry Panel */}
+      {/* 3. RIGHT COLUMN: Permanent Evaluation Result Panel & Diagnostics */}
+      <div className="lg:col-span-4 xl:col-span-4 space-y-3.5 min-w-0">
+        {/* Permanent Evaluation Result Card */}
+        <PracticeResultCard
+          result={evaluationResult}
+          word={selectedLesson.word}
+          onReset={resetSession}
+          isStandby={sessionState !== "completed" || !evaluationResult}
+          statusMessage={
+            sessionState === "analyzing"
+              ? "ระบบกำลังคำนวณและประมวลผลคะแนน AI..."
+              : sessionState === "practicing"
+              ? "กำลังบันทึกท่าทางภาษามือ... เมื่อทำเสร็จให้กด '⏹ หยุดและตรวจคะแนน'"
+              : undefined
+          }
+        />
+
+        {/* Real-World Diagnostic & Telemetry Panel (if enabled) */}
         {isDebugMode && showDebug && (
           <PracticeDiagnosticPanel
             stats={debugStats}

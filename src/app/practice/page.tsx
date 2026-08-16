@@ -10,7 +10,7 @@ export default async function PracticePage() {
 
   return (
     <AppLayout>
-      <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6 py-4 sm:py-6">
+      <div className="max-w-[1680px] w-full mx-auto px-3 sm:px-5 lg:px-6 py-4 sm:py-5">
         <PracticeSessionManager
           categories={categories}
           lessons={lessons}
